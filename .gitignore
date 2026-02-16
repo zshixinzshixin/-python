@@ -1,6 +1,33 @@
+# Python 缓存
 __pycache__/
-*.pyc
-*.exe
-*.pkg
-dist/
+*.py[cod]
+
+# 虚拟环境
+venv/
+.env
+.venv/
+
+# 测试覆盖率
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 打包产物
 build/
+dist/
+*.egg-info/
+
+# 数据库与日志
+*.log
+db.sqlite3
+
+# 本地配置
+local_settings.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# 系统文件
+.DS_Store
