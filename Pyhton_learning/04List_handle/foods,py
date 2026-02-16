@@ -1,0 +1,35 @@
+my_foods = ['pizza', 'falafel', 'carrot cake']
+friend_food = my_foods[:]
+
+print("My favorite food are:")
+print(my_foods)
+
+print("\nMy friend's favorite foods are:")
+print(friend_food)
+
+# 各自添加
+my_foods = ['pizza', 'falafel', 'carrot cake']
+friend_food = my_foods[:]
+
+my_foods.append('canoli')
+friend_food.append('ice cream')
+
+print("My favorite food are:")
+print(my_foods)
+
+print("\nMy friend's favorite foods are:")
+print(friend_food)
+
+# 这个方法行不通
+my_foods = ['pizza', 'falafel', 'carrot cake']
+
+friend_foods = my_foods
+
+my_foods.append('cannoli')
+friend_foods.append('ice cream')
+
+print("My favorite foods are:")
+print(my_foods)
+
+print("\nMy friend's favorite foods are:")
+print(friend_foods)

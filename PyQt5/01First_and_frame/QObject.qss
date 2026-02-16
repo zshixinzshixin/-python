@@ -1,0 +1,23 @@
+/*给标签控件添加一个id选择器, 用于区分不同的标签*/
+QLabel#notice { 
+    font-size: 20px;
+    color:gray;
+    border: 1px solid gray;
+    border-radius:8px;
+}
+/*给标签控件添加一个属性选择器, 用于根据属性值来匹配标签*/
+QLabel#notice[notice_level = "nomal"]
+{
+    color:green;
+    border-color: green;
+}
+QLabel#notice[notice_level = "warning"]
+{
+    color:yellow;
+    border-color: yellow;
+}
+QLabel#notice[notice_level = "error"]
+{
+    color:red;
+    border-color: red;
+}
