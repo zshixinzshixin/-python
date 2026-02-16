@@ -1,5 +1,6 @@
-"__pycache__/" 
-"*.exe" 
-"*.pkg" 
-"dist/" 
-"build/" 
+__pycache__/
+*.pyc
+*.exe
+*.pkg
+dist/
+build/
