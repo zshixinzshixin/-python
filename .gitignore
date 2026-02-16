@@ -1,7 +1,3 @@
-"Artifact/" 
-"Python_practice/alien_invasion/dist/" 
-"Python_practice/alien_invasion/build/" 
-"PyQt5/"       # 如果 PyQt5 目录下也有编译文件，可先整体忽略（按需调整）
 "__pycache__/" 
 "*.exe" 
 "*.pkg" 
