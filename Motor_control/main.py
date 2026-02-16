@@ -1,3 +1,5 @@
+# 代码功能：该文件定义了电机控制的主窗口
+# 包含电机ID、电机名称、电机类型、启动、停止、复位按钮
 import tkinter as tk
 from tkinter import ttk
 
@@ -7,7 +9,7 @@ def button_click():
     pass
 
 def create_main_window():
-    root = tk.Tk()
+    root = tk.Tk() # 创建主窗口
 
     root.title("电机控制")
 

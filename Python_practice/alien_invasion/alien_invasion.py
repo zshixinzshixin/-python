@@ -1,3 +1,4 @@
+# 代码功能：外星人入侵游戏
 import sys # 用于退出游戏
 import pygame
 from time import sleep

@@ -1,3 +1,4 @@
+# 代码功能：演示列表的遍历
 magicians = ['alice', 'david', 'carolina']
 for magician in magicians:
     print(magician)

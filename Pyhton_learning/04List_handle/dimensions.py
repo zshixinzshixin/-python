@@ -1,3 +1,4 @@
+# 代码功能：演示元组的使用
 # 尺寸
 dimensions = (200, 50)
 print(dimensions[0])

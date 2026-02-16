@@ -1,3 +1,4 @@
+# 代码功能：演示列表的切片
 players = ['charles', 'maetian', 'michael', 'florence', 'eli']
 print(players[0:3])
 print(players[1:4])

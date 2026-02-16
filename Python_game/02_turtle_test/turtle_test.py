@@ -1,3 +1,4 @@
+# 代码功能：绘制一个黄色的五角星
 from turtle import *
 
 color('red', 'yellow')  # 设置画笔颜色和填充颜色：红色边框，黄色填充

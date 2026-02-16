@@ -1,3 +1,4 @@
+/*代码功能：该QSS文件定义了针对QLabel控件的样式规则*/
 /*给标签控件添加一个id选择器, 用于区分不同的标签*/
 QLabel#notice { 
     font-size: 20px;

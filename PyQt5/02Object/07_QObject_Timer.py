@@ -1,3 +1,4 @@
+# 代码功能：演示QObject的定时器机制
 # 0. 导入需要的包和模块
 from PyQt5.Qt import *
 import sys

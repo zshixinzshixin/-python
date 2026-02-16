@@ -1,3 +1,4 @@
+# 代码功能：演示range函数的使用
 for value in range(1,5):
     print(value)
 # ranger函数
