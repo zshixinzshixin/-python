@@ -1,3 +1,4 @@
+# 代码功能：演示PyQt5的第一个程序
 import sys
 from PyQt5.Qt import *
 

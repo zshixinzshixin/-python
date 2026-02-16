@@ -1,3 +1,4 @@
+# 代码功能：演示QObject的类型判定
 from PyQt5.Qt import *
 
 class Window(QWidget):

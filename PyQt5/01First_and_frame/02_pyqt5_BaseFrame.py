@@ -1,3 +1,4 @@
+# 代码功能：演示PyQt5的基本框架
 # 0.导入需要的包和模块
 from PyQt5.Qt import * # 主要包括了我们常用的一些类，汇总到一块
 import sys

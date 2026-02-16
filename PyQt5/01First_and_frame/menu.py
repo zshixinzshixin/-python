@@ -1,3 +1,4 @@
+# 代码功能：演示PyQt5的封装机制
 from PyQt5.Qt import *
 
 class Window(QWidget):

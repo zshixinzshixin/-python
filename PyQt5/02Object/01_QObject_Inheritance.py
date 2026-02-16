@@ -1,3 +1,4 @@
+# 代码功能：演示QObject的继承关系
 from PyQt5.Qt import *
 
 # print(QObject.__subclasses__())

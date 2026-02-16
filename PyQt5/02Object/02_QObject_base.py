@@ -1,3 +1,4 @@
+# 代码功能：演示QObject的基本操作，包括继承关系、父对象、子对象、属性
 from PyQt5.Qt import *
 
 def QtFindChildrenRecursively(obj):
