@@ -1,3 +1,4 @@
+# 代码功能：游戏统计类
 import json
 import os
 

@@ -1,4 +1,4 @@
-# 代码功能：演示列表的复制
+# 代码功能：演示列表的复制和添加
 my_foods = ['pizza', 'falafel', 'carrot cake']
 friend_food = my_foods[:]
 

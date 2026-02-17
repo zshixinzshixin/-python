@@ -1,3 +1,4 @@
+# 代码功能：子弹类
 import pygame
 from pygame.sprite import Sprite
 

@@ -1,3 +1,4 @@
+# 代码功能：得分板类
 import pygame.font
 from pygame.sprite import Group
 from ship import Ship

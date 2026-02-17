@@ -1,4 +1,4 @@
-# 代码功能：演示列表的遍历和计算
+# 代码功能：演示列表的计算
 digits = list(range(0,10))
 print(digits)
 print(min(digits))

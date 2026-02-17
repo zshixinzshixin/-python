@@ -1,3 +1,4 @@
+# 代码功能：按钮类
 import pygame.font
 
 class Button:

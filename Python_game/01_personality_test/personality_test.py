@@ -1,5 +1,5 @@
+# 代码功能：性格测试
 from time import sleep
-# 这是一个性格测试的程序
 
 score = 0
 print("1.你自己是个不爱说话的人吗？")

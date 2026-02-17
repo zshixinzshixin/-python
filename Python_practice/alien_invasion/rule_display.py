@@ -1,3 +1,4 @@
+# 代码功能：规则显示类
 # rule_display.py - 增强版
 import pygame.font
 

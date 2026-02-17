@@ -1,3 +1,4 @@
+# 代码功能：飞船类
 import pygame
 from pygame.sprite import Sprite
 from resource_manager import resource_path

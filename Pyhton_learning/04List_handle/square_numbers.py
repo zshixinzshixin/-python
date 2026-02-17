@@ -1,4 +1,4 @@
-# 代码功能：演示列表的遍历和计算
+# 代码功能：演示特殊列表-平方数列表
 squares = []
 for value in range(1,11):
     square = value**2
