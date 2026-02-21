@@ -13,6 +13,9 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 
+# 导入配置
+import config
+
 # 词条数值定义 - 五星
 FIVE_STAR_VALUES = {
     'f': ['f16', 'f19', 'f21', 'f23'],
@@ -52,7 +55,8 @@ class DataManager:
 
     def __init__(self, base_dir=None):
         if base_dir is None:
-            base_dir = os.path.dirname(os.path.abspath(__file__))
+            # 优先使用当前工作目录，这样打包后数据会保存在exe所在目录
+            base_dir = os.getcwd()
         self.base_dir = base_dir
         self.records_dir = os.path.join(base_dir, '强化记录')
         self.exports_dir = os.path.join(self.records_dir, 'exports')
@@ -483,8 +487,8 @@ class ArtifactPredictor(QMainWindow):
             if probs is not None:
                 all_probs.append(probs)
                 # 权重：越近的3元组权重越高
-                # 使用线性权重，最近的权重为1，最早的权重为0.3
-                weight = 0.3 + 0.7 * (i / (n - 3) if n > 3 else 1)
+                # 使用配置文件中的参数
+                weight = config.SLIDING_WINDOW_BASE + config.SLIDING_WINDOW_RANGE * (i / (n - 3) if n > 3 else 1)
                 weights.append(weight)
 
         if not all_probs:
@@ -571,14 +575,14 @@ class ArtifactPredictor(QMainWindow):
         std_prob = np.std(probs_percent)
 
         # 综合置信度评分 (0-100)
-        confidence_score = max_prob * (1 + std_prob / 10)
+        confidence_score = max_prob * (1 + std_prob / config.CONFIDENCE_STD_FACTOR)
         confidence_score = min(100, confidence_score)
 
         # 确定置信度等级
-        if confidence_score >= 40:
+        if confidence_score >= config.CONFIDENCE_HIGH:
             level = "高"
             color = "#4CAF50"
-        elif confidence_score >= 25:
+        elif confidence_score >= config.CONFIDENCE_MEDIUM:
             level = "中"
             color = "#FF9800"
         else:

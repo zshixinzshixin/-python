@@ -10,6 +10,9 @@ import json
 import os
 from datetime import datetime
 
+# 导入配置
+import config
+
 # 词条类型映射
 type_map = {
     'f': 0, 's': 1, 'g': 2, 'F': 3, 'S': 4,
@@ -58,7 +61,10 @@ def decode_entry(entry_id):
 class ArtifactDataset(Dataset):
     """圣遗物强化数据集"""
 
-    def __init__(self, records, use_sliding_window=True, star_transition_weight=2.0):
+    def __init__(self, records, use_sliding_window=True, star_transition_weight=None):
+        # 使用配置文件中的权重
+        if star_transition_weight is None:
+            star_transition_weight = config.STAR_TRANSITION_WEIGHT
         """
         records: list of dict, 每个dict包含timestamp和entries
         use_sliding_window: 是否使用滑动窗口生成多个样本
@@ -147,17 +153,29 @@ class ArtifactDataset(Dataset):
 class LSTMPredictor(nn.Module):
     """LSTM预测模型"""
 
-    def __init__(self, vocab_size=80, embed_dim=16, hidden_dim=64, num_layers=2, num_classes=10, dropout=0.2):
+    def __init__(self, vocab_size=80, embed_dim=None, hidden_dim=None, num_layers=None, num_classes=None, dropout=None):
+        # 使用配置文件中的参数
+        if embed_dim is None:
+            embed_dim = config.EMBED_DIM
+        if hidden_dim is None:
+            hidden_dim = config.HIDDEN_DIM
+        if num_layers is None:
+            num_layers = config.NUM_LAYERS
+        if num_classes is None:
+            num_classes = config.NUM_CLASSES
+        if dropout is None:
+            dropout = config.DROPOUT
+
         super(LSTMPredictor, self).__init__()
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers,
                            batch_first=True, dropout=dropout)
         self.fc = nn.Sequential(
-            nn.Linear(hidden_dim, 32),
+            nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(32, num_classes)
+            nn.Linear(hidden_dim // 2, num_classes)
         )
 
     def forward(self, x):
@@ -179,13 +197,19 @@ class ModelTrainer:
         self.model = None
         self.training_log = []
 
-    def prepare_data(self, test_ratio=0.2, batch_size=32):
+    def prepare_data(self, test_ratio=None, batch_size=None):
         """准备训练数据"""
+        # 使用配置文件中的参数
+        if test_ratio is None:
+            test_ratio = config.TEST_RATIO
+        if batch_size is None:
+            batch_size = config.BATCH_SIZE
+
         data = self.data_manager.load_records()
         records = data['records']
 
-        if len(records) < 10:
-            return None, None, "数据不足，需要至少10条记录"
+        if len(records) < config.MIN_RECORDS_FOR_TRAINING:
+            return None, None, f"数据不足，需要至少{config.MIN_RECORDS_FOR_TRAINING}条记录"
 
         # 创建数据集
         dataset = ArtifactDataset(records)
@@ -206,8 +230,16 @@ class ModelTrainer:
 
         return train_loader, test_loader, None
 
-    def train(self, epochs=100, learning_rate=0.001, patience=10):
+    def train(self, epochs=None, learning_rate=None, patience=None):
         """训练模型"""
+        # 使用配置文件中的参数
+        if epochs is None:
+            epochs = config.EPOCHS
+        if learning_rate is None:
+            learning_rate = config.LEARNING_RATE
+        if patience is None:
+            patience = config.PATIENCE
+
         train_loader, test_loader, error = self.prepare_data()
         if error:
             return False, error
@@ -216,7 +248,7 @@ class ModelTrainer:
         self.model = LSTMPredictor().to(self.device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, factor=0.5)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=max(5, patience//2), factor=0.5)
 
         best_accuracy = 0
         best_model_state = None
