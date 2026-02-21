@@ -59,16 +59,20 @@ def decode_entry(entry_id):
 
 
 class ArtifactDataset(Dataset):
-    """圣遗物强化数据集"""
+    """圣遗物强化数据集 - 支持skip参数"""
 
-    def __init__(self, records, use_sliding_window=True, star_transition_weight=None):
+    def __init__(self, records, use_sliding_window=True, star_transition_weight=None, max_skip=None):
         # 使用配置文件中的权重
         if star_transition_weight is None:
             star_transition_weight = config.STAR_TRANSITION_WEIGHT
+        # 使用配置文件中的max_skip
+        if max_skip is None:
+            max_skip = config.MAX_SKIP
         """
         records: list of dict, 每个dict包含timestamp和entries
         use_sliding_window: 是否使用滑动窗口生成多个样本
         star_transition_weight: 跨星级样本的权重倍数（3星→5星转换样本权重更高）
+        max_skip: 最大跳过步数（1=预测下一个，2=跳过1个，3=跳过2个）
         """
         self.samples = []
         self.weights = []
@@ -79,7 +83,7 @@ class ArtifactDataset(Dataset):
             for record in records:
                 all_entries.extend(record['entries'])
 
-            # 滑动窗口生成样本
+            # 滑动窗口生成样本，支持多种skip
             for i in range(len(all_entries) - 3):
                 # 编码3个输入词条
                 input_seq = []
@@ -90,24 +94,27 @@ class ArtifactDataset(Dataset):
                     input_seq.append(entry_id)
                     stars.append(entry['star'])
 
-                # 目标：第4个词条的类型
-                target_type = type_map[all_entries[i + 3]['value'][0]]
-                target_star = all_entries[i + 3]['star']
+                # 生成多种skip的样本
+                for skip in range(1, min(max_skip + 1, len(all_entries) - i - 2)):
+                    target_idx = i + 3 + skip - 1  # skip=1时预测第4个(i+3)
+                    if target_idx < len(all_entries):
+                        target_type = type_map[all_entries[target_idx]['value'][0]]
+                        target_star = all_entries[target_idx]['star']
 
-                self.samples.append((input_seq, target_type))
+                        # 样本格式：(input_seq, skip, target)
+                        self.samples.append((input_seq, skip, target_type))
 
-                # 计算权重：跨星级样本权重更高
-                # 如果输入包含3星和5星，或者目标与输入星级不同
-                has_3_star = '3星' in stars
-                has_5_star = '5星' in stars
-                is_transition = (has_3_star and has_5_star) or \
-                               (has_3_star and target_star == '5星') or \
-                               (has_5_star and target_star == '3星')
+                        # 计算权重：跨星级样本权重更高，skip大的样本权重略低
+                        has_3_star = '3星' in stars
+                        has_5_star = '5星' in stars
+                        is_transition = (has_3_star and has_5_star) or \
+                                       (has_3_star and target_star == '5星') or \
+                                       (has_5_star and target_star == '3星')
 
-                if is_transition:
-                    self.weights.append(star_transition_weight)
-                else:
-                    self.weights.append(1.0)
+                        base_weight = star_transition_weight if is_transition else 1.0
+                        # skip越大权重略低（近期预测更可靠）
+                        skip_discount = 1.0 - (skip - 1) * 0.1  # skip=1:1.0, skip=2:0.9, skip=3:0.8
+                        self.weights.append(base_weight * skip_discount)
         else:
             # 原始方案：每条记录独立生成样本
             for record in records:
@@ -124,36 +131,42 @@ class ArtifactDataset(Dataset):
                         input_seq.append(entry_id)
                         stars.append(entry['star'])
 
-                    target_type = type_map[entries[i + 3]['value'][0]]
-                    target_star = entries[i + 3]['star']
+                    # 生成多种skip的样本
+                    for skip in range(1, min(max_skip + 1, len(entries) - i - 2)):
+                        target_idx = i + 3 + skip - 1
+                        if target_idx < len(entries):
+                            target_type = type_map[entries[target_idx]['value'][0]]
+                            target_star = entries[target_idx]['star']
 
-                    self.samples.append((input_seq, target_type))
+                            self.samples.append((input_seq, skip, target_type))
 
-                    # 计算权重
-                    has_3_star = '3星' in stars
-                    has_5_star = '5星' in stars
-                    is_transition = (has_3_star and has_5_star) or \
-                                   (has_3_star and target_star == '5星') or \
-                                   (has_5_star and target_star == '3星')
+                            # 计算权重
+                            has_3_star = '3星' in stars
+                            has_5_star = '5星' in stars
+                            is_transition = (has_3_star and has_5_star) or \
+                                           (has_3_star and target_star == '5星') or \
+                                           (has_5_star and target_star == '3星')
 
-                    if is_transition:
-                        self.weights.append(star_transition_weight)
-                    else:
-                        self.weights.append(1.0)
+                            base_weight = star_transition_weight if is_transition else 1.0
+                            skip_discount = 1.0 - (skip - 1) * 0.1
+                            self.weights.append(base_weight * skip_discount)
 
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, idx):
-        input_seq, target = self.samples[idx]
+        input_seq, skip, target = self.samples[idx]
         weight = self.weights[idx]
-        return torch.tensor(input_seq, dtype=torch.long), torch.tensor(target, dtype=torch.long), torch.tensor(weight, dtype=torch.float)
+        return (torch.tensor(input_seq, dtype=torch.long), 
+                torch.tensor(skip, dtype=torch.long),
+                torch.tensor(target, dtype=torch.long), 
+                torch.tensor(weight, dtype=torch.float))
 
 
 class LSTMPredictor(nn.Module):
-    """LSTM预测模型"""
+    """LSTM预测模型 - 支持skip参数"""
 
-    def __init__(self, vocab_size=80, embed_dim=None, hidden_dim=None, num_layers=None, num_classes=None, dropout=None):
+    def __init__(self, vocab_size=80, embed_dim=None, hidden_dim=None, num_layers=None, num_classes=None, dropout=None, max_skip=None):
         # 使用配置文件中的参数
         if embed_dim is None:
             embed_dim = config.EMBED_DIM
@@ -165,25 +178,44 @@ class LSTMPredictor(nn.Module):
             num_classes = config.NUM_CLASSES
         if dropout is None:
             dropout = config.DROPOUT
+        if max_skip is None:
+            max_skip = config.MAX_SKIP
 
         super(LSTMPredictor, self).__init__()
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers,
                            batch_first=True, dropout=dropout)
+        
+        # skip嵌入层 (skip范围1-3，嵌入维度4)
+        self.skip_embedding = nn.Embedding(max_skip + 1, 4)
+        
+        # 全连接层，输入维度 = hidden_dim + 4 (skip嵌入)
         self.fc = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.Linear(hidden_dim + 4, hidden_dim // 2),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(hidden_dim // 2, num_classes)
         )
 
-    def forward(self, x):
+    def forward(self, x, skip=None):
         # x: (batch_size, seq_len=3)
+        # skip: (batch_size,) 跳过步数，1=预测下一个，2=跳过1个预测，3=跳过2个预测
         embedded = self.embedding(x)  # (batch_size, seq_len, embed_dim)
         lstm_out, (hidden, cell) = self.lstm(embedded)
         # 使用最后一个时间步的输出
         last_output = lstm_out[:, -1, :]  # (batch_size, hidden_dim)
+        
+        # 如果提供了skip参数，拼接skip嵌入
+        if skip is not None:
+            skip_embed = self.skip_embedding(skip)  # (batch_size, 4)
+            last_output = torch.cat([last_output, skip_embed], dim=1)  # (batch_size, hidden_dim + 4)
+        else:
+            # 默认skip=1，用0填充（skip=0的嵌入）
+            batch_size = last_output.size(0)
+            skip_embed = self.skip_embedding(torch.zeros(batch_size, dtype=torch.long, device=last_output.device))
+            last_output = torch.cat([last_output, skip_embed], dim=1)
+        
         output = self.fc(last_output)  # (batch_size, num_classes)
         return output
 
@@ -263,11 +295,11 @@ class ModelTrainer:
             train_correct = 0
             train_total = 0
 
-            for inputs, targets, weights in train_loader:
-                inputs, targets, weights = inputs.to(self.device), targets.to(self.device), weights.to(self.device)
+            for inputs, skips, targets, weights in train_loader:
+                inputs, skips, targets, weights = inputs.to(self.device), skips.to(self.device), targets.to(self.device), weights.to(self.device)
 
                 optimizer.zero_grad()
-                outputs = self.model(inputs)
+                outputs = self.model(inputs, skips)
 
                 # 使用加权损失函数
                 loss = criterion(outputs, targets)
@@ -290,9 +322,9 @@ class ModelTrainer:
             test_total = 0
 
             with torch.no_grad():
-                for inputs, targets, _ in test_loader:
-                    inputs, targets = inputs.to(self.device), targets.to(self.device)
-                    outputs = self.model(inputs)
+                for inputs, skips, targets, _ in test_loader:
+                    inputs, skips, targets = inputs.to(self.device), skips.to(self.device), targets.to(self.device)
+                    outputs = self.model(inputs, skips)
                     loss = criterion(outputs, targets)
 
                     test_loss += loss.item()
@@ -371,6 +403,7 @@ class ModelTrainer:
             'hidden_dim': 64,
             'num_layers': 2,
             'num_classes': 10,
+            'max_skip': 3,  # 支持skip参数
             'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'accuracy': accuracy
         }
@@ -414,7 +447,8 @@ class ModelTrainer:
             embed_dim=checkpoint['embed_dim'],
             hidden_dim=checkpoint['hidden_dim'],
             num_layers=checkpoint['num_layers'],
-            num_classes=checkpoint['num_classes']
+            num_classes=checkpoint['num_classes'],
+            max_skip=checkpoint.get('max_skip', 3)  # 兼容旧模型，默认3
         ).to(self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
@@ -442,17 +476,19 @@ class ModelTrainer:
             embed_dim=checkpoint['embed_dim'],
             hidden_dim=checkpoint['hidden_dim'],
             num_layers=checkpoint['num_layers'],
-            num_classes=checkpoint['num_classes']
+            num_classes=checkpoint['num_classes'],
+            max_skip=checkpoint.get('max_skip', 3)  # 兼容旧模型，默认3
         ).to(self.device)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.model.eval()
 
         return True
 
-    def predict(self, entries):
+    def predict(self, entries, skip=1):
         """
-        预测下一个词条
+        预测下一个词条 - 支持skip参数
         entries: list of dict, 包含value, gear, star
+        skip: 跳过步数，1=预测下一个，2=跳过1个预测，3=跳过2个预测
         返回: 10种词条类型的概率分布
         """
         if self.model is None:
@@ -468,12 +504,73 @@ class ModelTrainer:
         # 取最后3个
         input_seq = encoded[-3:]
         input_tensor = torch.tensor([input_seq], dtype=torch.long).to(self.device)
+        skip_tensor = torch.tensor([skip], dtype=torch.long).to(self.device)
 
         with torch.no_grad():
-            output = self.model(input_tensor)
+            output = self.model(input_tensor, skip_tensor)
             probabilities = torch.softmax(output, dim=1).cpu().numpy()[0]
 
         return probabilities * 100  # 转为百分比
+
+    def predict_dl_smart(self, all_entries):
+        """
+        智能预测：根据词条数量选择不同的skip策略
+        动态支持 config.MAX_SKIP 配置
+        all_entries: 所有已录入的词条列表
+        返回: 加权后的概率分布
+        """
+        import numpy as np
+
+        n = len(all_entries)
+        max_skip = config.MAX_SKIP
+
+        # 最少3个词条：只用 skip=1
+        if n < 5:
+            return self.predict(all_entries[-3:], skip=1)
+
+        # 计算可用多少个skip（受限于词条数量和max_skip）
+        # n个词条最多可用 skip = min(max_skip, (n-3))
+        available_skips = min(max_skip, n - 3)
+
+        predictions = []
+        weights = []
+
+        for skip in range(1, available_skips + 1):
+            # 获取输入序列：从后往前取3个，再往前skip-1个
+            start_idx = -(3 + (skip - 1) * 2)
+            end_idx = start_idx + 3 if start_idx + 3 < 0 else None
+
+            if abs(start_idx) <= n:
+                input_seq = all_entries[start_idx:end_idx]
+                if len(input_seq) == 3:
+                    pred = self.predict(input_seq, skip=skip)
+                    if pred is not None:
+                        predictions.append(pred)
+                        # 根据skip获取权重
+                        if skip == 1:
+                            # 5-6词条用 SKIP_1_WEIGHT_5TO6，7+用 SKIP_1_WEIGHT_7PLUS
+                            weight = config.SKIP_1_WEIGHT_5TO6 if n < 7 else config.SKIP_1_WEIGHT_7PLUS
+                        elif skip == 2:
+                            weight = config.SKIP_2_WEIGHT
+                        elif skip == 3:
+                            weight = config.SKIP_3_WEIGHT
+                        else:
+                            # skip > 3 时，权重递减
+                            weight = config.SKIP_3_WEIGHT * (0.5 ** (skip - 3))
+                        weights.append(weight)
+
+        if not predictions:
+            return self.predict(all_entries[-3:], skip=1)
+
+        # 加权平均
+        weights = np.array(weights)
+        weights = weights / weights.sum()
+
+        final_probs = np.zeros(10)
+        for pred, w in zip(predictions, weights):
+            final_probs += pred * w
+
+        return final_probs
 
 
 if __name__ == "__main__":

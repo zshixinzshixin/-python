@@ -1,0 +1,1341 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "G43",
+          "gear": 1,
+          "star": "5星",
+          "type": "G",
+          "order": 1
+        },
+        {
+          "value": "j22",
+          "gear": 3,
+          "star": "5星",
+          "type": "j",
+          "order": 2
+        },
+        {
+          "value": "S467",
+          "gear": 2,
+          "star": "4星",
+          "type": "S",
+          "order": 3
+        },
+        {
+          "value": "s234",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 4
+        },
+        {
+          "value": "s152",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 5
+        },
+        {
+          "value": "f20",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 6
+        },
+        {
+          "value": "c4",
+          "gear": 1,
+          "star": "4星",
+          "type": "c",
+          "order": 7
+        },
+        {
+          "value": "b4",
+          "gear": 3,
+          "star": "3星",
+          "type": "b",
+          "order": 8
+        },
+        {
+          "value": "F45",
+          "gear": 4,
+          "star": "4星",
+          "type": "F",
+          "order": 9
+        },
+        {
+          "value": "s232",
+          "gear": 4,
+          "star": "4星",
+          "type": "s",
+          "order": 10
+        },
+        {
+          "value": "b2",
+          "gear": 2,
+          "star": "4星",
+          "type": "b",
+          "order": 11
+        },
+        {
+          "value": "s172",
+          "gear": 4,
+          "star": "4星",
+          "type": "s",
+          "order": 12
+        },
+        {
+          "value": "b2",
+          "gear": 1,
+          "star": "5星",
+          "type": "b",
+          "order": 13
+        },
+        {
+          "value": "B8",
+          "gear": 4,
+          "star": "3星",
+          "type": "B",
+          "order": 14
+        },
+        {
+          "value": "j21",
+          "gear": 2,
+          "star": "4星",
+          "type": "j",
+          "order": 15
+        }
+      ],
+      "artifact_type": "sand"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "f19",
+          "gear": 2,
+          "star": "3星",
+          "type": "f",
+          "order": 1
+        },
+        {
+          "value": "s216",
+          "gear": 4,
+          "star": "3星",
+          "type": "s",
+          "order": 2
+        },
+        {
+          "value": "c4",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 3
+        },
+        {
+          "value": "j17",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 4
+        },
+        {
+          "value": "s181",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 5
+        },
+        {
+          "value": "F50",
+          "gear": 3,
+          "star": "3星",
+          "type": "F",
+          "order": 6
+        },
+        {
+          "value": "j18",
+          "gear": 3,
+          "star": "3星",
+          "type": "j",
+          "order": 7
+        },
+        {
+          "value": "B8",
+          "gear": 4,
+          "star": "3星",
+          "type": "B",
+          "order": 8
+        },
+        {
+          "value": "g20",
+          "gear": 2,
+          "star": "3星",
+          "type": "g",
+          "order": 9
+        },
+        {
+          "value": "B6",
+          "gear": 3,
+          "star": "3星",
+          "type": "B",
+          "order": 10
+        },
+        {
+          "value": "s203",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 11
+        },
+        {
+          "value": "F43",
+          "gear": 2,
+          "star": "3星",
+          "type": "F",
+          "order": 12
+        },
+        {
+          "value": "c5",
+          "gear": 3,
+          "star": "3星",
+          "type": "c",
+          "order": 13
+        },
+        {
+          "value": "B5",
+          "gear": 4,
+          "star": "3星",
+          "type": "B",
+          "order": 14
+        },
+        {
+          "value": "j20",
+          "gear": 1,
+          "star": "3星",
+          "type": "j",
+          "order": 15
+        }
+      ],
+      "artifact_type": "flower"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "G46",
+          "gear": 3,
+          "star": "5星",
+          "type": "G",
+          "order": 1
+        },
+        {
+          "value": "B8",
+          "gear": 1,
+          "star": "5星",
+          "type": "B",
+          "order": 2
+        },
+        {
+          "value": "B5",
+          "gear": 3,
+          "star": "5星",
+          "type": "B",
+          "order": 3
+        },
+        {
+          "value": "G44",
+          "gear": 4,
+          "star": "5星",
+          "type": "G",
+          "order": 4
+        },
+        {
+          "value": "B5",
+          "gear": 1,
+          "star": "5星",
+          "type": "B",
+          "order": 5
+        },
+        {
+          "value": "b4",
+          "gear": 3,
+          "star": "5星",
+          "type": "b",
+          "order": 6
+        },
+        {
+          "value": "F50",
+          "gear": 4,
+          "star": "5星",
+          "type": "F",
+          "order": 7
+        },
+        {
+          "value": "F40",
+          "gear": 2,
+          "star": "5星",
+          "type": "F",
+          "order": 8
+        },
+        {
+          "value": "B6",
+          "gear": 2,
+          "star": "5星",
+          "type": "B",
+          "order": 9
+        },
+        {
+          "value": "c4",
+          "gear": 1,
+          "star": "5星",
+          "type": "c",
+          "order": 10
+        },
+        {
+          "value": "B7",
+          "gear": 2,
+          "star": "5星",
+          "type": "B",
+          "order": 11
+        },
+        {
+          "value": "G46",
+          "gear": 2,
+          "star": "5星",
+          "type": "G",
+          "order": 12
+        },
+        {
+          "value": "B7",
+          "gear": 3,
+          "star": "5星",
+          "type": "B",
+          "order": 13
+        },
+        {
+          "value": "f17",
+          "gear": 4,
+          "star": "5星",
+          "type": "f",
+          "order": 14
+        },
+        {
+          "value": "G40",
+          "gear": 3,
+          "star": "5星",
+          "type": "G",
+          "order": 15
+        }
+      ],
+      "artifact_type": "sand"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "G44",
+          "gear": 3,
+          "star": "3星",
+          "type": "G",
+          "order": 1
+        },
+        {
+          "value": "f14",
+          "gear": 2,
+          "star": "3星",
+          "type": "f",
+          "order": 2
+        },
+        {
+          "value": "b2",
+          "gear": 1,
+          "star": "3星",
+          "type": "b",
+          "order": 3
+        },
+        {
+          "value": "j22",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 4
+        },
+        {
+          "value": "j17",
+          "gear": 4,
+          "star": "3星",
+          "type": "j",
+          "order": 5
+        },
+        {
+          "value": "g20",
+          "gear": 2,
+          "star": "3星",
+          "type": "g",
+          "order": 6
+        },
+        {
+          "value": "g20",
+          "gear": 4,
+          "star": "3星",
+          "type": "g",
+          "order": 7
+        },
+        {
+          "value": "S439",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 8
+        },
+        {
+          "value": "c4",
+          "gear": 3,
+          "star": "3星",
+          "type": "c",
+          "order": 9
+        },
+        {
+          "value": "c5",
+          "gear": 3,
+          "star": "3星",
+          "type": "c",
+          "order": 10
+        },
+        {
+          "value": "c5",
+          "gear": 3,
+          "star": "3星",
+          "type": "c",
+          "order": 11
+        },
+        {
+          "value": "j20",
+          "gear": 2,
+          "star": "5星",
+          "type": "j",
+          "order": 12
+        },
+        {
+          "value": "c5",
+          "gear": 4,
+          "star": "5星",
+          "type": "c",
+          "order": 13
+        },
+        {
+          "value": "B7",
+          "gear": 2,
+          "star": "5星",
+          "type": "B",
+          "order": 14
+        },
+        {
+          "value": "g18",
+          "gear": 4,
+          "star": "5星",
+          "type": "g",
+          "order": 15
+        }
+      ],
+      "artifact_type": "flower"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "f15",
+          "gear": 2,
+          "star": "3星",
+          "type": "f",
+          "order": 1
+        },
+        {
+          "value": "F49",
+          "gear": 4,
+          "star": "3星",
+          "type": "F",
+          "order": 2
+        },
+        {
+          "value": "B8",
+          "gear": 4,
+          "star": "3星",
+          "type": "B",
+          "order": 3
+        },
+        {
+          "value": "s200",
+          "gear": 4,
+          "star": "3星",
+          "type": "s",
+          "order": 4
+        },
+        {
+          "value": "S440",
+          "gear": 3,
+          "star": "4星",
+          "type": "S",
+          "order": 5
+        },
+        {
+          "value": "j21",
+          "gear": 3,
+          "star": "4星",
+          "type": "j",
+          "order": 6
+        },
+        {
+          "value": "c5",
+          "gear": 2,
+          "star": "4星",
+          "type": "c",
+          "order": 7
+        },
+        {
+          "value": "b4",
+          "gear": 4,
+          "star": "4星",
+          "type": "b",
+          "order": 8
+        },
+        {
+          "value": "j20",
+          "gear": 1,
+          "star": "4星",
+          "type": "j",
+          "order": 9
+        },
+        {
+          "value": "j20",
+          "gear": 4,
+          "star": "5星",
+          "type": "j",
+          "order": 10
+        },
+        {
+          "value": "S491",
+          "gear": 1,
+          "star": "5星",
+          "type": "S",
+          "order": 11
+        },
+        {
+          "value": "b4",
+          "gear": 2,
+          "star": "5星",
+          "type": "b",
+          "order": 12
+        },
+        {
+          "value": "F50",
+          "gear": 1,
+          "star": "5星",
+          "type": "F",
+          "order": 13
+        },
+        {
+          "value": "G40",
+          "gear": 2,
+          "star": "5星",
+          "type": "G",
+          "order": 14
+        },
+        {
+          "value": "S466",
+          "gear": 4,
+          "star": "5星",
+          "type": "S",
+          "order": 15
+        }
+      ],
+      "artifact_type": "cup"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "b3",
+          "gear": 4,
+          "star": "5星",
+          "type": "b",
+          "order": 1
+        },
+        {
+          "value": "F49",
+          "gear": 3,
+          "star": "5星",
+          "type": "F",
+          "order": 2
+        },
+        {
+          "value": "G49",
+          "gear": 2,
+          "star": "5星",
+          "type": "G",
+          "order": 3
+        },
+        {
+          "value": "B8",
+          "gear": 1,
+          "star": "4星",
+          "type": "B",
+          "order": 4
+        },
+        {
+          "value": "b4",
+          "gear": 4,
+          "star": "5星",
+          "type": "b",
+          "order": 5
+        },
+        {
+          "value": "j20",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 6
+        },
+        {
+          "value": "g19",
+          "gear": 1,
+          "star": "4星",
+          "type": "g",
+          "order": 7
+        },
+        {
+          "value": "g15",
+          "gear": 4,
+          "star": "5星",
+          "type": "g",
+          "order": 8
+        },
+        {
+          "value": "b2",
+          "gear": 3,
+          "star": "4星",
+          "type": "b",
+          "order": 9
+        },
+        {
+          "value": "f15",
+          "gear": 4,
+          "star": "5星",
+          "type": "f",
+          "order": 10
+        },
+        {
+          "value": "s227",
+          "gear": 4,
+          "star": "3星",
+          "type": "s",
+          "order": 11
+        },
+        {
+          "value": "f15",
+          "gear": 1,
+          "star": "5星",
+          "type": "f",
+          "order": 12
+        },
+        {
+          "value": "F44",
+          "gear": 4,
+          "star": "4星",
+          "type": "F",
+          "order": 13
+        },
+        {
+          "value": "c6",
+          "gear": 4,
+          "star": "5星",
+          "type": "c",
+          "order": 14
+        },
+        {
+          "value": "B8",
+          "gear": 1,
+          "star": "4星",
+          "type": "B",
+          "order": 15
+        }
+      ],
+      "artifact_type": "sand"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "g17",
+          "gear": 3,
+          "star": "3星",
+          "type": "g",
+          "order": 1
+        },
+        {
+          "value": "j22",
+          "gear": 3,
+          "star": "3星",
+          "type": "j",
+          "order": 2
+        },
+        {
+          "value": "B6",
+          "gear": 4,
+          "star": "3星",
+          "type": "B",
+          "order": 3
+        },
+        {
+          "value": "s155",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 4
+        },
+        {
+          "value": "S480",
+          "gear": 2,
+          "star": "3星",
+          "type": "S",
+          "order": 5
+        },
+        {
+          "value": "s195",
+          "gear": 4,
+          "star": "3星",
+          "type": "s",
+          "order": 6
+        },
+        {
+          "value": "g14",
+          "gear": 4,
+          "star": "3星",
+          "type": "g",
+          "order": 7
+        },
+        {
+          "value": "F46",
+          "gear": 4,
+          "star": "3星",
+          "type": "F",
+          "order": 8
+        },
+        {
+          "value": "G44",
+          "gear": 2,
+          "star": "3星",
+          "type": "G",
+          "order": 9
+        },
+        {
+          "value": "B5",
+          "gear": 2,
+          "star": "3星",
+          "type": "B",
+          "order": 10
+        },
+        {
+          "value": "g15",
+          "gear": 3,
+          "star": "3星",
+          "type": "g",
+          "order": 11
+        },
+        {
+          "value": "b3",
+          "gear": 2,
+          "star": "3星",
+          "type": "b",
+          "order": 12
+        },
+        {
+          "value": "s150",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 13
+        },
+        {
+          "value": "j22",
+          "gear": 4,
+          "star": "3星",
+          "type": "j",
+          "order": 14
+        },
+        {
+          "value": "f17",
+          "gear": 2,
+          "star": "3星",
+          "type": "f",
+          "order": 15
+        }
+      ],
+      "artifact_type": "head"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "g18",
+          "gear": 1,
+          "star": "5星",
+          "type": "g",
+          "order": 1
+        },
+        {
+          "value": "S458",
+          "gear": 2,
+          "star": "5星",
+          "type": "S",
+          "order": 2
+        },
+        {
+          "value": "S494",
+          "gear": 2,
+          "star": "5星",
+          "type": "S",
+          "order": 3
+        },
+        {
+          "value": "B6",
+          "gear": 4,
+          "star": "5星",
+          "type": "B",
+          "order": 4
+        },
+        {
+          "value": "f16",
+          "gear": 1,
+          "star": "5星",
+          "type": "f",
+          "order": 5
+        },
+        {
+          "value": "c4",
+          "gear": 3,
+          "star": "5星",
+          "type": "c",
+          "order": 6
+        },
+        {
+          "value": "S473",
+          "gear": 4,
+          "star": "5星",
+          "type": "S",
+          "order": 7
+        },
+        {
+          "value": "j20",
+          "gear": 1,
+          "star": "5星",
+          "type": "j",
+          "order": 8
+        },
+        {
+          "value": "c4",
+          "gear": 2,
+          "star": "5星",
+          "type": "c",
+          "order": 9
+        },
+        {
+          "value": "c6",
+          "gear": 1,
+          "star": "5星",
+          "type": "c",
+          "order": 10
+        },
+        {
+          "value": "G46",
+          "gear": 2,
+          "star": "5星",
+          "type": "G",
+          "order": 11
+        },
+        {
+          "value": "g18",
+          "gear": 1,
+          "star": "5星",
+          "type": "g",
+          "order": 12
+        },
+        {
+          "value": "S493",
+          "gear": 3,
+          "star": "5星",
+          "type": "S",
+          "order": 13
+        },
+        {
+          "value": "b4",
+          "gear": 2,
+          "star": "5星",
+          "type": "b",
+          "order": 14
+        },
+        {
+          "value": "S473",
+          "gear": 4,
+          "star": "5星",
+          "type": "S",
+          "order": 15
+        }
+      ],
+      "artifact_type": "sand"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "g19",
+          "gear": 4,
+          "star": "3星",
+          "type": "g",
+          "order": 1
+        },
+        {
+          "value": "j17",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 2
+        },
+        {
+          "value": "F49",
+          "gear": 2,
+          "star": "3星",
+          "type": "F",
+          "order": 3
+        },
+        {
+          "value": "G42",
+          "gear": 2,
+          "star": "3星",
+          "type": "G",
+          "order": 4
+        },
+        {
+          "value": "s246",
+          "gear": 4,
+          "star": "3星",
+          "type": "s",
+          "order": 5
+        },
+        {
+          "value": "f17",
+          "gear": 3,
+          "star": "3星",
+          "type": "f",
+          "order": 6
+        },
+        {
+          "value": "s192",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 7
+        },
+        {
+          "value": "b3",
+          "gear": 1,
+          "star": "3星",
+          "type": "b",
+          "order": 8
+        },
+        {
+          "value": "f16",
+          "gear": 2,
+          "star": "3星",
+          "type": "f",
+          "order": 9
+        },
+        {
+          "value": "g20",
+          "gear": 1,
+          "star": "3星",
+          "type": "g",
+          "order": 10
+        },
+        {
+          "value": "j22",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 11
+        },
+        {
+          "value": "G50",
+          "gear": 1,
+          "star": "5星",
+          "type": "G",
+          "order": 12
+        },
+        {
+          "value": "b4",
+          "gear": 2,
+          "star": "5星",
+          "type": "b",
+          "order": 13
+        },
+        {
+          "value": "g19",
+          "gear": 2,
+          "star": "5星",
+          "type": "g",
+          "order": 14
+        },
+        {
+          "value": "g14",
+          "gear": 3,
+          "star": "5星",
+          "type": "g",
+          "order": 15
+        }
+      ],
+      "artifact_type": "feather"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "F49",
+          "gear": 1,
+          "star": "3星",
+          "type": "F",
+          "order": 1
+        },
+        {
+          "value": "B5",
+          "gear": 4,
+          "star": "3星",
+          "type": "B",
+          "order": 2
+        },
+        {
+          "value": "s175",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 3
+        },
+        {
+          "value": "b4",
+          "gear": 3,
+          "star": "3星",
+          "type": "b",
+          "order": 4
+        },
+        {
+          "value": "j21",
+          "gear": 1,
+          "star": "4星",
+          "type": "j",
+          "order": 5
+        },
+        {
+          "value": "b2",
+          "gear": 4,
+          "star": "4星",
+          "type": "b",
+          "order": 6
+        },
+        {
+          "value": "f19",
+          "gear": 4,
+          "star": "4星",
+          "type": "f",
+          "order": 7
+        },
+        {
+          "value": "F43",
+          "gear": 4,
+          "star": "4星",
+          "type": "F",
+          "order": 8
+        },
+        {
+          "value": "B7",
+          "gear": 2,
+          "star": "4星",
+          "type": "B",
+          "order": 9
+        },
+        {
+          "value": "f19",
+          "gear": 2,
+          "star": "5星",
+          "type": "f",
+          "order": 10
+        },
+        {
+          "value": "b3",
+          "gear": 3,
+          "star": "5星",
+          "type": "b",
+          "order": 11
+        },
+        {
+          "value": "f15",
+          "gear": 4,
+          "star": "5星",
+          "type": "f",
+          "order": 12
+        },
+        {
+          "value": "B5",
+          "gear": 3,
+          "star": "5星",
+          "type": "B",
+          "order": 13
+        },
+        {
+          "value": "F42",
+          "gear": 2,
+          "star": "5星",
+          "type": "F",
+          "order": 14
+        },
+        {
+          "value": "b3",
+          "gear": 4,
+          "star": "5星",
+          "type": "b",
+          "order": 15
+        }
+      ],
+      "artifact_type": "cup"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "F50",
+          "gear": 2,
+          "star": "4星",
+          "type": "F",
+          "order": 1
+        },
+        {
+          "value": "G50",
+          "gear": 1,
+          "star": "4星",
+          "type": "G",
+          "order": 2
+        },
+        {
+          "value": "s171",
+          "gear": 4,
+          "star": "3星",
+          "type": "s",
+          "order": 3
+        },
+        {
+          "value": "j22",
+          "gear": 1,
+          "star": "5星",
+          "type": "j",
+          "order": 4
+        },
+        {
+          "value": "F47",
+          "gear": 4,
+          "star": "3星",
+          "type": "F",
+          "order": 5
+        },
+        {
+          "value": "G49",
+          "gear": 2,
+          "star": "5星",
+          "type": "G",
+          "order": 6
+        },
+        {
+          "value": "B6",
+          "gear": 3,
+          "star": "5星",
+          "type": "B",
+          "order": 7
+        },
+        {
+          "value": "s219",
+          "gear": 3,
+          "star": "4星",
+          "type": "s",
+          "order": 8
+        },
+        {
+          "value": "s238",
+          "gear": 3,
+          "star": "3星",
+          "type": "s",
+          "order": 9
+        },
+        {
+          "value": "B6",
+          "gear": 1,
+          "star": "5星",
+          "type": "B",
+          "order": 10
+        },
+        {
+          "value": "G44",
+          "gear": 1,
+          "star": "4星",
+          "type": "G",
+          "order": 11
+        },
+        {
+          "value": "s216",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 12
+        },
+        {
+          "value": "f17",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 13
+        },
+        {
+          "value": "F41",
+          "gear": 4,
+          "star": "4星",
+          "type": "F",
+          "order": 14
+        },
+        {
+          "value": "j21",
+          "gear": 3,
+          "star": "4星",
+          "type": "j",
+          "order": 15
+        }
+      ],
+      "artifact_type": "feather"
+    },
+    {
+      "timestamp": "2026-02-21 19:00:10",
+      "entries": [
+        {
+          "value": "F44",
+          "gear": 1,
+          "star": "3星",
+          "type": "F",
+          "order": 1
+        },
+        {
+          "value": "f19",
+          "gear": 1,
+          "star": "3星",
+          "type": "f",
+          "order": 2
+        },
+        {
+          "value": "G42",
+          "gear": 3,
+          "star": "3星",
+          "type": "G",
+          "order": 3
+        },
+        {
+          "value": "j22",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 4
+        },
+        {
+          "value": "F41",
+          "gear": 2,
+          "star": "3星",
+          "type": "F",
+          "order": 5
+        },
+        {
+          "value": "G46",
+          "gear": 3,
+          "star": "3星",
+          "type": "G",
+          "order": 6
+        },
+        {
+          "value": "b4",
+          "gear": 2,
+          "star": "3星",
+          "type": "b",
+          "order": 7
+        },
+        {
+          "value": "b4",
+          "gear": 3,
+          "star": "3星",
+          "type": "b",
+          "order": 8
+        },
+        {
+          "value": "s168",
+          "gear": 3,
+          "star": "3星",
+          "type": "s",
+          "order": 9
+        },
+        {
+          "value": "j19",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 10
+        },
+        {
+          "value": "c6",
+          "gear": 1,
+          "star": "3星",
+          "type": "c",
+          "order": 11
+        },
+        {
+          "value": "S427",
+          "gear": 3,
+          "star": "3星",
+          "type": "S",
+          "order": 12
+        },
+        {
+          "value": "f20",
+          "gear": 1,
+          "star": "3星",
+          "type": "f",
+          "order": 13
+        },
+        {
+          "value": "F48",
+          "gear": 1,
+          "star": "3星",
+          "type": "F",
+          "order": 14
+        },
+        {
+          "value": "c5",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 15
+        }
+      ],
+      "artifact_type": "head"
+    }
+  ],
+  "metadata": {
+    "total_records": 12,
+    "last_updated": "2026-02-21 19:00:10",
+    "data_type": "test"
+  }
+}

@@ -74,6 +74,7 @@ class ConfigEditor(QMainWindow):
         # 创建参数组
         self.create_data_weight_group()
         self.create_sliding_window_group()
+        self.create_skip_prediction_group()
         self.create_model_structure_group()
         self.create_training_group()
         self.create_confidence_group()
@@ -194,6 +195,49 @@ class ConfigEditor(QMainWindow):
             "变化范围:",
             "权重变化范围（最近样本权重 = 基础 + 范围）",
             0.5, 0.9, 2
+        )
+
+        self.form_layout.addWidget(group)
+
+    def create_skip_prediction_group(self):
+        """Skip预测组"""
+        group = QGroupBox("Skip预测（修改后需重新训练）")
+        group.setStyleSheet("QGroupBox { color: red; }")
+        layout = QVBoxLayout(group)
+
+        self.max_skip = self.create_param_row(
+            layout,
+            "最大Skip步数:",
+            "1=只预测下一个, 2=跳过1个, 3=跳过2个",
+            1, 5, 0
+        )
+
+        self.skip_1_weight_7plus = self.create_param_row(
+            layout,
+            "Skip=1权重(7+词条):",
+            "7词条以上时近期预测权重",
+            0.5, 1.0, 2
+        )
+
+        self.skip_1_weight_5to6 = self.create_param_row(
+            layout,
+            "Skip=1权重(5-6词条):",
+            "5-6词条时近期预测权重",
+            0.5, 1.0, 2
+        )
+
+        self.skip_2_weight = self.create_param_row(
+            layout,
+            "Skip=2权重:",
+            "中期预测权重",
+            0.2, 0.4, 2
+        )
+
+        self.skip_3_weight = self.create_param_row(
+            layout,
+            "Skip=3权重:",
+            "长期预测权重",
+            0.05, 0.2, 2
         )
 
         self.form_layout.addWidget(group)
@@ -319,6 +363,11 @@ class ConfigEditor(QMainWindow):
             self.star_transition_weight.setValue(config.STAR_TRANSITION_WEIGHT)
             self.sliding_window_base.setValue(config.SLIDING_WINDOW_BASE)
             self.sliding_window_range.setValue(config.SLIDING_WINDOW_RANGE)
+            self.max_skip.setValue(config.MAX_SKIP)
+            self.skip_1_weight_7plus.setValue(config.SKIP_1_WEIGHT_7PLUS)
+            self.skip_1_weight_5to6.setValue(config.SKIP_1_WEIGHT_5TO6)
+            self.skip_2_weight.setValue(config.SKIP_2_WEIGHT)
+            self.skip_3_weight.setValue(config.SKIP_3_WEIGHT)
             self.embed_dim.setValue(config.EMBED_DIM)
             self.hidden_dim.setValue(config.HIDDEN_DIM)
             self.num_layers.setValue(config.NUM_LAYERS)
@@ -350,6 +399,11 @@ class ConfigEditor(QMainWindow):
                 ('STAR_TRANSITION_WEIGHT', self.star_transition_weight.value()),
                 ('SLIDING_WINDOW_BASE', self.sliding_window_base.value()),
                 ('SLIDING_WINDOW_RANGE', self.sliding_window_range.value()),
+                ('MAX_SKIP', self.max_skip.value()),
+                ('SKIP_1_WEIGHT_7PLUS', self.skip_1_weight_7plus.value()),
+                ('SKIP_1_WEIGHT_5TO6', self.skip_1_weight_5to6.value()),
+                ('SKIP_2_WEIGHT', self.skip_2_weight.value()),
+                ('SKIP_3_WEIGHT', self.skip_3_weight.value()),
                 ('EMBED_DIM', self.embed_dim.value()),
                 ('HIDDEN_DIM', self.hidden_dim.value()),
                 ('NUM_LAYERS', self.num_layers.value()),

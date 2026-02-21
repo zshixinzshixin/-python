@@ -538,14 +538,17 @@ class ArtifactPredictor(QMainWindow):
         return probs * 100
 
     def predict_with_dl(self, past_3):
-        """使用深度学习预测"""
+        """使用深度学习预测 - 使用智能预测策略"""
         try:
             from dl_model import ModelTrainer
 
             trainer = ModelTrainer(self.data_manager)
-            entries = [{'value': row['value'], 'gear': row['gear'], 'star': row['star']} for row in past_3]
-            probs = trainer.predict(entries)
 
+            # 将所有已录入的词条转换为entries格式
+            all_entries = [{'value': row['value'], 'gear': row['gear'], 'star': row['star']} for row in past_3]
+
+            # 使用智能预测（根据词条数量选择skip策略）
+            probs = trainer.predict_dl_smart(all_entries)
             return probs
         except Exception as e:
             print(f"深度学习预测失败: {e}")
