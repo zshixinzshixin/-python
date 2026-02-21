@@ -631,15 +631,17 @@ class ArtifactPredictor(QMainWindow):
             QMessageBox.warning(self, "数据不足", "需要至少4个词条才能保存一条强化记录")
             return
 
-        # 构建entries列表（保存所有已录入的词条，顺序反转回录入顺序）
+        # 构建entries列表（保存所有已录入的词条，按录入顺序）
+        # input_rows: [最新, ..., 最旧]，需要反转为 [最旧, ..., 最新]
         entries = []
-        for i, row in enumerate(reversed(self.input_rows)):
+        reversed_rows = list(reversed(self.input_rows))
+        for i, row in enumerate(reversed_rows):
             entry = {
                 "value": row['value'],
                 "gear": row['gear'],
                 "star": row['star'],
                 "type": row['value'][0],
-                "order": i + 1
+                "order": i + 1  # 最旧的order=1，最新的order=最后
             }
             entries.append(entry)
 

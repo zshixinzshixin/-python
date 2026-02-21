@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-02-21 16:14:53",
+      "entries": [
+        {
+          "value": "f23",
+          "gear": 4,
+          "star": "5星",
+          "type": "f",
+          "order": 1
+        },
+        {
+          "value": "s299",
+          "gear": 4,
+          "star": "5星",
+          "type": "s",
+          "order": 2
+        },
+        {
+          "value": "b39",
+          "gear": 4,
+          "star": "5星",
+          "type": "b",
+          "order": 3
+        },
+        {
+          "value": "B78",
+          "gear": 4,
+          "star": "5星",
+          "type": "B",
+          "order": 4
+        }
+      ],
+      "artifact_type": ""
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "last_updated": "2026-02-21 16:14:53"
+  }
+}
