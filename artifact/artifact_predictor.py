@@ -312,8 +312,8 @@ class ArtifactPredictor(QMainWindow):
         self.status_label = QLabel("记录数: 0 | 模型状态: 未训练")
         right_layout.addWidget(self.status_label)
 
-        # 表1
-        table1_group = QGroupBox("表1：预测下一次词条")
+        # 概率表
+        table1_group = QGroupBox("概率表：预测下一次词条")
         table1_layout = QVBoxLayout(table1_group)
         self.table1 = QTableWidget(1, 10)
         self.table1.setHorizontalHeaderLabels(["小防", "小生", "小攻", "大防", "大生", "大攻", "精通", "充能", "暴击", "暴伤"])
