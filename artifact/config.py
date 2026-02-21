@@ -123,8 +123,18 @@ BATCH_SIZE = 32
 CONFIDENCE_STD_FACTOR = 10
 
 # 置信度阈值
-CONFIDENCE_HIGH = 40    # 高置信度阈值
-CONFIDENCE_MEDIUM = 25  # 中置信度阈值
+
+# 统计模式阈值（查表分布集中）
+CONFIDENCE_HIGH_STATS = 40    # 高置信度阈值
+CONFIDENCE_MEDIUM_STATS = 25  # 中置信度阈值
+
+# 深度学习模式阈值（softmax分布平滑，阈值更低）
+CONFIDENCE_HIGH_DL = 20       # 高置信度阈值（最高概率≥20%）
+CONFIDENCE_MEDIUM_DL = 15     # 中置信度阈值（最高概率≥15%）
+
+# 保持向后兼容（默认使用统计模式阈值）
+CONFIDENCE_HIGH = CONFIDENCE_HIGH_STATS
+CONFIDENCE_MEDIUM = CONFIDENCE_MEDIUM_STATS
 
 
 # ==================== 其他配置 ====================

@@ -329,7 +329,7 @@ class ConfigEditor(QMainWindow):
 
     def create_confidence_group(self):
         """置信度组"""
-        group = QGroupBox("置信度计算")
+        group = QGroupBox("置信度计算（双模式）")
         layout = QVBoxLayout(group)
 
         self.confidence_std_factor = self.create_param_row(
@@ -339,18 +339,42 @@ class ConfigEditor(QMainWindow):
             5, 20, 0
         )
 
-        self.confidence_high = self.create_param_row(
+        # 统计模式阈值
+        stats_label = QLabel("【统计模式阈值】")
+        stats_label.setStyleSheet("font-weight: bold; color: #2196F3;")
+        layout.addWidget(stats_label)
+
+        self.confidence_high_stats = self.create_param_row(
             layout,
-            "高置信度阈值:",
-            "高于此值为高置信度",
+            "  高置信度阈值:",
+            "统计模式：高于此值为高置信度（查表分布集中）",
             30, 60, 0
         )
 
-        self.confidence_medium = self.create_param_row(
+        self.confidence_medium_stats = self.create_param_row(
             layout,
-            "中置信度阈值:",
-            "高于此值为中置信度",
+            "  中置信度阈值:",
+            "统计模式：高于此值为中置信度",
             15, 40, 0
+        )
+
+        # 深度学习模式阈值
+        dl_label = QLabel("【深度学习模式阈值】")
+        dl_label.setStyleSheet("font-weight: bold; color: #4CAF50;")
+        layout.addWidget(dl_label)
+
+        self.confidence_high_dl = self.create_param_row(
+            layout,
+            "  高置信度阈值:",
+            "深度学习模式：高于此值为高置信度（建议20）",
+            15, 30, 0
+        )
+
+        self.confidence_medium_dl = self.create_param_row(
+            layout,
+            "  中置信度阈值:",
+            "深度学习模式：高于此值为中置信度（建议15）",
+            10, 20, 0
         )
 
         self.form_layout.addWidget(group)
@@ -379,8 +403,10 @@ class ConfigEditor(QMainWindow):
             self.batch_size.setValue(config.BATCH_SIZE)
             self.min_records.setValue(config.MIN_RECORDS_FOR_TRAINING)
             self.confidence_std_factor.setValue(config.CONFIDENCE_STD_FACTOR)
-            self.confidence_high.setValue(config.CONFIDENCE_HIGH)
-            self.confidence_medium.setValue(config.CONFIDENCE_MEDIUM)
+            self.confidence_high_stats.setValue(config.CONFIDENCE_HIGH_STATS)
+            self.confidence_medium_stats.setValue(config.CONFIDENCE_MEDIUM_STATS)
+            self.confidence_high_dl.setValue(config.CONFIDENCE_HIGH_DL)
+            self.confidence_medium_dl.setValue(config.CONFIDENCE_MEDIUM_DL)
 
             print("配置已加载")
 
@@ -415,8 +441,10 @@ class ConfigEditor(QMainWindow):
                 ('BATCH_SIZE', self.batch_size.value()),
                 ('MIN_RECORDS_FOR_TRAINING', self.min_records.value()),
                 ('CONFIDENCE_STD_FACTOR', self.confidence_std_factor.value()),
-                ('CONFIDENCE_HIGH', self.confidence_high.value()),
-                ('CONFIDENCE_MEDIUM', self.confidence_medium.value()),
+                ('CONFIDENCE_HIGH_STATS', self.confidence_high_stats.value()),
+                ('CONFIDENCE_MEDIUM_STATS', self.confidence_medium_stats.value()),
+                ('CONFIDENCE_HIGH_DL', self.confidence_high_dl.value()),
+                ('CONFIDENCE_MEDIUM_DL', self.confidence_medium_dl.value()),
             ]
 
             for param_name, new_value in updates:
@@ -483,8 +511,14 @@ BATCH_SIZE = 32
 # ==================== 置信度计算配置 ====================
 
 CONFIDENCE_STD_FACTOR = 10
-CONFIDENCE_HIGH = 40
-CONFIDENCE_MEDIUM = 25
+
+# 统计模式阈值（查表分布集中）
+CONFIDENCE_HIGH_STATS = 40
+CONFIDENCE_MEDIUM_STATS = 25
+
+# 深度学习模式阈值（softmax分布平滑，阈值更低）
+CONFIDENCE_HIGH_DL = 20
+CONFIDENCE_MEDIUM_DL = 15
 
 
 # ==================== 其他配置 ====================

@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QHeaderView, QScrollArea, QComboBox, QMessageBox
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 
 # 导入配置
 import config
@@ -183,9 +184,26 @@ class ArtifactPredictor(QMainWindow):
         self.model_data = None
         self.input_rows = []
         self.data_manager = DataManager()
+        self.set_window_icon()
         self.initUI()
         self.load_model_data()
         self.update_data_status()
+
+    def set_window_icon(self):
+        """设置应用窗口图标（兼容PyInstaller打包）"""
+        # PyInstaller打包后的路径处理
+        if getattr(sys, 'frozen', False):
+            # 打包后的exe运行环境
+            base_path = sys._MEIPASS
+        else:
+            # 开发环境
+            base_path = os.path.dirname(os.path.abspath(__file__))
+
+        icon_path = os.path.join(base_path, 'icon', 'icon.ico')
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+        else:
+            print(f"图标文件不存在: {icon_path}")
 
     def initUI(self):
         self.setWindowTitle("原神圣遗物词条预测工具")
@@ -244,7 +262,8 @@ class ArtifactPredictor(QMainWindow):
         header_layout.setContentsMargins(5, 2, 5, 2)
         header_layout.addWidget(QLabel("档位"), 1)
         header_layout.addWidget(QLabel("词条"), 2)
-        header_layout.addWidget(QLabel("录"), 1)
+        header_layout.addWidget(QLabel("星级"), 1)
+        header_layout.addWidget(QLabel("录入"), 1)
         middle_layout.addWidget(header_widget)
 
         # 录入区域（可滚动）
@@ -305,10 +324,15 @@ class ArtifactPredictor(QMainWindow):
         self.table1.setFixedHeight(self.table1.horizontalHeader().height() + 40)
         table1_layout.addWidget(self.table1)
 
-        # Top-3推荐显示
+        # Top-3推荐显示（深度学习模式）
         self.top3_label = QLabel("Top-3推荐: -")
         self.top3_label.setStyleSheet("font-weight: bold; color: #2196F3;")
         table1_layout.addWidget(self.top3_label)
+
+        # 统计模式Top-3推荐显示（仅在深度学习模式下显示用于对比）
+        self.stats_top3_label = QLabel("")
+        self.stats_top3_label.setStyleSheet("font-weight: bold; color: black;")
+        table1_layout.addWidget(self.stats_top3_label)
 
         # 置信度显示
         self.confidence_label = QLabel("置信度: -")
@@ -373,10 +397,12 @@ class ArtifactPredictor(QMainWindow):
 
         gear_label = QLabel(str(gear))
         value_label = QLabel(value)
+        star_label = QLabel(star)
         order_label = QLabel(str(len(self.input_rows) + 1))
 
         row_layout.addWidget(gear_label, 1)
         row_layout.addWidget(value_label, 2)
+        row_layout.addWidget(star_label, 1)
         row_layout.addWidget(order_label, 1)
 
         # 插入到最前面（最新词条在最上面）
@@ -411,11 +437,12 @@ class ArtifactPredictor(QMainWindow):
         for col in range(10):
             self.table1.setItem(0, col, QTableWidgetItem(""))
         self.top3_label.setText("Top-3推荐: -")
+        self.stats_top3_label.setText("")
         self.confidence_label.setText("置信度: -")
         self.confidence_label.setStyleSheet("font-weight: bold;")
 
     def value_to_index(self, value, star):
-        """将词条值转换为0-39的索引"""
+        """将词条值转换为0-39的索引（NPY文件只支持0-39）"""
         type_char = value[0]
         type_idx = type_map[type_char]
         if star == "5星":
@@ -438,8 +465,22 @@ class ArtifactPredictor(QMainWindow):
             use_dl = (self.mode_combo.currentText() == "深度学习模式" and
                      self.mode_combo.isEnabled())
 
-            # 使用滑动窗口扩展预测（利用所有已录入词条）
-            probs_percent = self.predict_with_sliding_window(use_dl)
+            # 获取最近3个词条（input_rows[0]是最新的）
+            # input_rows是[最新, ..., 最旧]，取前3个就是最新的
+            last_3 = list(reversed(self.input_rows[:3]))  # 取前3个，然后反转为[最旧, 中间, 最新]
+
+            if use_dl:
+                # 深度学习模式：同时计算两种模式用于对比
+                dl_probs = self.predict_with_dl_smart(last_3)
+                stats_probs = self.predict_with_stats_sliding()
+                probs_percent = dl_probs
+                # 更新统计模式Top-3（用于对比）
+                self.update_stats_top3(stats_probs)
+            else:
+                # 统计模式：只计算统计模式
+                probs_percent = self.predict_with_stats_sliding()
+                # 清除统计模式Top-3显示
+                self.stats_top3_label.setText("")
 
             # 更新表格（只显示概率%）
             if probs_percent is not None:
@@ -455,54 +496,6 @@ class ArtifactPredictor(QMainWindow):
         except Exception as e:
             print(f"预测错误: {e}")
             self.clear_tables()
-
-    def predict_with_sliding_window(self, use_dl=True):
-        """
-        使用滑动窗口扩展预测
-        利用所有已录入的词条，生成多个3元组进行加权预测
-        """
-        n = len(self.input_rows)
-        if n < 3:
-            return None
-
-        all_probs = []
-        weights = []
-
-        # 生成所有可能的3元组（从最早到最近）
-        # input_rows: [最新, ..., 最旧]，需要反转处理
-        reversed_rows = list(reversed(self.input_rows))  # 变为 [最旧, ..., 最新]
-
-        for i in range(n - 2):
-            # 获取3元组 [i, i+1, i+2]
-            triple = reversed_rows[i:i+3]
-
-            # 获取预测概率
-            if use_dl:
-                probs = self.predict_with_dl(triple)
-                if probs is None:
-                    probs = self.predict_with_stats(triple)
-            else:
-                probs = self.predict_with_stats(triple)
-
-            if probs is not None:
-                all_probs.append(probs)
-                # 权重：越近的3元组权重越高
-                # 使用配置文件中的参数
-                weight = config.SLIDING_WINDOW_BASE + config.SLIDING_WINDOW_RANGE * (i / (n - 3) if n > 3 else 1)
-                weights.append(weight)
-
-        if not all_probs:
-            return None
-
-        # 加权平均所有预测结果
-        weights = np.array(weights)
-        weights = weights / weights.sum()  # 归一化
-
-        final_probs = np.zeros(10)
-        for probs, weight in zip(all_probs, weights):
-            final_probs += probs * weight
-
-        return final_probs
 
     def predict_with_stats(self, past_3):
         """使用统计方法预测"""
@@ -537,8 +530,48 @@ class ArtifactPredictor(QMainWindow):
 
         return probs * 100
 
+    def predict_with_stats_sliding(self, max_entries=7):
+        """使用滑动窗口统计预测
+        max_entries: 最多使用最近多少个词条（默认7个，即最多5个窗口）
+        """
+        if not self.model_data or len(self.input_rows) < 3:
+            return None
+
+        # 获取最近max_entries个词条（input_rows是[最新, ..., 最旧]）
+        # 取前max_entries个（最新的），然后反转为[最旧, ..., 最新]
+        recent_rows = self.input_rows[:max_entries]
+        all_rows = list(reversed(recent_rows))
+        n = len(all_rows)
+
+        # 生成滑动窗口
+        windows = []
+        weights = []
+
+        # 窗口大小为3，步长为1
+        num_windows = n - 2
+        for i in range(num_windows):
+            window = all_rows[i:i+3]  # [i, i+1, i+2]
+            # 权重：越近的窗口权重越高
+            weight = (i + 1) / num_windows  # 线性递增权重
+            windows.append(window)
+            weights.append(weight)
+
+        # 归一化权重
+        total_weight = sum(weights)
+        weights = [w / total_weight for w in weights]
+
+        # 每个窗口查表并加权平均
+        final_probs = np.zeros(10)
+
+        for window, weight in zip(windows, weights):
+            probs = self.predict_with_stats(window)
+            if probs is not None:
+                final_probs += probs * weight
+
+        return final_probs
+
     def predict_with_dl(self, past_3):
-        """使用深度学习预测 - 使用智能预测策略"""
+        """使用深度学习预测 - 单skip预测（保留用于兼容）"""
         try:
             from dl_model import ModelTrainer
 
@@ -547,12 +580,31 @@ class ArtifactPredictor(QMainWindow):
             # 将所有已录入的词条转换为entries格式
             all_entries = [{'value': row['value'], 'gear': row['gear'], 'star': row['star']} for row in past_3]
 
-            # 使用智能预测（根据词条数量选择skip策略）
-            probs = trainer.predict_dl_smart(all_entries)
+            # 使用skip=1预测
+            probs = trainer.predict(all_entries, skip=1)
             return probs
         except Exception as e:
             print(f"深度学习预测失败: {e}")
             return None
+
+    def predict_with_dl_smart(self, last_3):
+        """使用深度学习智能预测 - 根据所有录入词条选择skip策略"""
+        try:
+            from dl_model import ModelTrainer
+
+            trainer = ModelTrainer(self.data_manager)
+
+            # 将所有已录入的词条（不只是最近3个）转换为entries格式
+            all_entries = [{'value': row['value'], 'gear': row['gear'], 'star': row['star']} 
+                          for row in reversed(self.input_rows)]  # 从最旧到最新
+
+            # 使用智能预测（根据词条数量选择skip策略）
+            probs = trainer.predict_dl_smart(all_entries)
+            return probs
+        except Exception as e:
+            print(f"深度学习智能预测失败: {e}")
+            # 失败时回退到统计模式
+            return self.predict_with_stats(last_3)
 
     def update_top3_recommendation(self, probs_percent):
         """更新Top-3推荐"""
@@ -571,6 +623,32 @@ class ArtifactPredictor(QMainWindow):
 
         self.top3_label.setText(f"Top-3推荐: {' | '.join(recommendations)}")
 
+    def update_stats_top3(self, probs_percent):
+        """更新统计模式Top-3推荐（用于深度学习模式对比）"""
+        if probs_percent is None or len(probs_percent) == 0:
+            self.stats_top3_label.setText("")
+            return
+
+        try:
+            # 词条名称映射
+            type_names = ["小防", "小生", "小攻", "大防", "大生", "大攻", "精通", "充能", "暴击", "暴伤"]
+
+            # 获取概率最高的3个索引
+            top3_indices = np.argsort(probs_percent)[-3:][::-1]
+
+            # 构建推荐文本
+            recommendations = []
+            for i, idx in enumerate(top3_indices, 1):
+                name = type_names[idx]
+                prob = probs_percent[idx]
+                recommendations.append(f"{i}.{name}({prob:.1f}%)")
+
+            self.stats_top3_label.setText(f"Top-3统计: {' | '.join(recommendations)}")
+        except Exception as e:
+            # 出错时隐藏统计模式显示，不影响主预测
+            self.stats_top3_label.setText("")
+            print(f"统计模式Top-3更新失败: {e}")
+
     def update_confidence(self, probs_percent):
         """更新置信度显示"""
         # 计算置信度指标
@@ -578,14 +656,27 @@ class ArtifactPredictor(QMainWindow):
         std_prob = np.std(probs_percent)
 
         # 综合置信度评分 (0-100)
-        confidence_score = max_prob * (1 + std_prob / config.CONFIDENCE_STD_FACTOR)
-        confidence_score = min(100, confidence_score)
+        # 公式：最高概率 - 标准差/2
+        # 标准差越大（分布越分散），置信度越低
+        confidence_score = max_prob - std_prob / 2
+        confidence_score = max(0, min(100, confidence_score))
+
+        # 根据预测模式选择阈值
+        # 统计模式：查表分布集中，阈值较高
+        # 深度学习模式：softmax分布平滑，阈值较低
+        current_mode = self.mode_combo.currentText()
+        if current_mode == "深度学习模式":
+            high_threshold = config.CONFIDENCE_HIGH_DL
+            medium_threshold = config.CONFIDENCE_MEDIUM_DL
+        else:
+            high_threshold = config.CONFIDENCE_HIGH_STATS
+            medium_threshold = config.CONFIDENCE_MEDIUM_STATS
 
         # 确定置信度等级
-        if confidence_score >= config.CONFIDENCE_HIGH:
+        if confidence_score >= high_threshold:
             level = "高"
             color = "#4CAF50"
-        elif confidence_score >= config.CONFIDENCE_MEDIUM:
+        elif confidence_score >= medium_threshold:
             level = "中"
             color = "#FF9800"
         else:

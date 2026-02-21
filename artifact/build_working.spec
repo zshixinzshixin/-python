@@ -30,6 +30,7 @@ datas = [
     ('config.py', '.'),
     ('genmat401.npy', '.'),
     ('dl_model.py', '.'),
+    ('icon', 'icon'),  # 图标文件夹
 ]
 
 a = Analysis(
@@ -125,6 +126,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='icon\\icon.ico',  # exe文件图标
 )
 
 coll = COLLECT(
