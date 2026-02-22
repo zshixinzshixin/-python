@@ -207,7 +207,7 @@ class ArtifactPredictor(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle("原神圣遗物词条预测工具")
-        self.setGeometry(100, 100, 1400, 900)
+        self.setGeometry(100, 100, 1400, 900) # 窗口大小
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -512,11 +512,11 @@ class ArtifactPredictor(QMainWindow):
 
         # 决定使用哪个矩阵
         star_count = sum(1 for row in past_3 if row['star'] == "5星")
-        if star_count >= 2:
+        if star_count >= 2: # 至少有2个5星，就用W3
             counts = W3[i1, i2, i3, :].astype(float)
             if counts.sum() < 10:
                 counts = counts + S3[i1, i2, i3, :].astype(float)
-        else:
+        else: # 否则用S3
             counts = S3[i1, i2, i3, :].astype(float)
             if counts.sum() < 10:
                 counts = counts + W3[i1, i2, i3, :].astype(float)
