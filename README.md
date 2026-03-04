@@ -15,6 +15,6 @@ Other：
 
 2.小游戏
 
-    2.1 贪吃蛇
+2.1 贪吃蛇
 
 3.artifact prediction
