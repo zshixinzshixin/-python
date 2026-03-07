@@ -234,8 +234,13 @@ class ArtifactPredictor(QMainWindow):
 
         # 胚子标签页
         embryo_tab = QWidget()
+        embryo_layout = QVBoxLayout(embryo_tab)
+        embryo_layout.setSpacing(5)
+        self.init_embryo_panel(embryo_layout)
+
         self.tab_widget.addTab(five_star_tab, "五星")
         self.tab_widget.addTab(three_star_tab, "三星")
+        self.tab_widget.addTab(embryo_tab, "胚子")
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         left_layout.addWidget(self.tab_widget)
@@ -312,8 +317,8 @@ class ArtifactPredictor(QMainWindow):
         self.status_label = QLabel("记录数: 0 | 模型状态: 未训练")
         right_layout.addWidget(self.status_label)
 
-        # 概率表
-        table1_group = QGroupBox("概率表：预测下一次词条")
+        # 表1：概率表
+        table1_group = QGroupBox("表1：预测下一次词条")
         table1_layout = QVBoxLayout(table1_group)
         self.table1 = QTableWidget(1, 10)
         self.table1.setHorizontalHeaderLabels(["小防", "小生", "小攻", "大防", "大生", "大攻", "精通", "充能", "暴击", "暴伤"])
@@ -340,6 +345,37 @@ class ArtifactPredictor(QMainWindow):
         table1_layout.addWidget(self.confidence_label)
 
         right_layout.addWidget(table1_group)
+
+        # 表2：胚子概率表
+        table2_group = QGroupBox("表2：胚子强化概率")
+        table2_layout = QVBoxLayout(table2_group)
+        self.table2 = QTableWidget(1, 4)
+        self.table2.setHorizontalHeaderLabels(["-", "-", "-", "-"])
+        self.table2.setVerticalHeaderLabels(["概率%"])
+        self.table2.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table2.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table2.setFixedHeight(self.table2.horizontalHeader().height() + 40)
+        table2_layout.addWidget(self.table2)
+
+        # 添加伸缩因子，均匀分布空白
+        table2_layout.addStretch(2)
+
+        # 胚子强化建议（上半部分）
+        self.embryo_advice_label = QLabel("强化建议: -")
+        self.embryo_advice_label.setStyleSheet("font-weight: bold;")
+        table2_layout.addWidget(self.embryo_advice_label)
+
+        # 中间空白
+        table2_layout.addStretch(1)
+
+        # 风险度标签（下半部分）
+        self.risk_label = QLabel("")
+        self.risk_label.setStyleSheet("font-weight: bold;")
+        table2_layout.addWidget(self.risk_label)
+
+        table2_layout.addStretch(2)
+
+        right_layout.addWidget(table2_group)
 
         main_layout.addWidget(right_panel, 2)
 
@@ -385,8 +421,121 @@ class ArtifactPredictor(QMainWindow):
         layout.addLayout(button_grid)
         layout.addStretch()
 
+    def init_embryo_panel(self, layout):
+        """初始化胚子标签页：选择4个目标词条"""
+        info_label = QLabel("选择胚子的4个词条（点击勾选）：")
+        layout.addWidget(info_label)
+
+        # 存储选中的胚子词条
+        self.embryo_selected = []
+        self.embryo_buttons = {}
+
+        # 词条类型名称
+        type_names = ['小防', '小生', '小攻', '大防', '大生', '大攻', '精通', '充能', '暴击', '暴伤']
+        type_keys = ['f', 's', 'g', 'F', 'S', 'G', 'j', 'c', 'b', 'B']
+
+        # 创建2行5列的勾选按钮网格
+        button_grid = QGridLayout()
+        button_grid.setSpacing(10)
+
+        for i, (name, key) in enumerate(zip(type_names, type_keys)):
+            row = i // 5
+            col = i % 5
+
+            btn = QPushButton(f"{name}\n({key})")
+            btn.setFixedSize(80, 60)
+            btn.setCheckable(True)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #f0f0f0;
+                    border: 2px solid #ccc;
+                    border-radius: 5px;
+                }
+                QPushButton:checked {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: 2px solid #45a049;
+                }
+            """)
+            btn.clicked.connect(lambda checked, k=key, b=btn: self.on_embryo_type_clicked(k, b))
+            button_grid.addWidget(btn, row, col)
+            self.embryo_buttons[key] = btn
+
+        layout.addLayout(button_grid)
+
+        # 显示当前选择
+        self.embryo_status_label = QLabel("已选择：0/4")
+        self.embryo_status_label.setStyleSheet("font-weight: bold; color: #2196F3;")
+        layout.addWidget(self.embryo_status_label)
+
+        # 确认和清空按钮
+        btn_layout = QHBoxLayout()
+        confirm_btn = QPushButton("确认胚子")
+        confirm_btn.clicked.connect(self.on_embryo_confirm)
+        clear_btn = QPushButton("清空选择")
+        clear_btn.clicked.connect(self.on_embryo_clear)
+        btn_layout.addWidget(confirm_btn)
+        btn_layout.addWidget(clear_btn)
+        layout.addLayout(btn_layout)
+
+        # 当前胚子显示
+        self.embryo_current_label = QLabel("当前胚子：未设置")
+        self.embryo_current_label.setStyleSheet("font-weight: bold; color: #FF5722;")
+        layout.addWidget(self.embryo_current_label)
+
+        layout.addStretch()
+
+    def on_embryo_type_clicked(self, type_key, btn):
+        """处理胚子词条点击"""
+        if btn.isChecked():
+            if len(self.embryo_selected) < 4:
+                self.embryo_selected.append(type_key)
+            else:
+                btn.setChecked(False)
+                QMessageBox.warning(self, "提示", "最多只能选择4个词条！")
+        else:
+            if type_key in self.embryo_selected:
+                self.embryo_selected.remove(type_key)
+
+        self.update_embryo_status()
+
+    def update_embryo_status(self):
+        """更新胚子选择状态显示"""
+        count = len(self.embryo_selected)
+        self.embryo_status_label.setText(f"已选择：{count}/4")
+
+        # 显示已选择的词条名称
+        type_names = {'f': '小防', 's': '小生', 'g': '小攻', 'F': '大防', 'S': '大生',
+                     'G': '大攻', 'j': '精通', 'c': '充能', 'b': '暴击', 'B': '暴伤'}
+        selected_names = [type_names.get(k, k) for k in self.embryo_selected]
+        if selected_names:
+            self.embryo_status_label.setText(f"已选择：{count}/4 - {', '.join(selected_names)}")
+
+    def on_embryo_confirm(self):
+        """确认胚子选择"""
+        if len(self.embryo_selected) != 4:
+            QMessageBox.warning(self, "提示", "请选择恰好4个词条！")
+            return
+
+        type_names = {'f': '小防', 's': '小生', 'g': '小攻', 'F': '大防', 'S': '大生',
+                     'G': '大攻', 'j': '精通', 'c': '充能', 'b': '暴击', 'B': '暴伤'}
+        selected_names = [type_names.get(k, k) for k in self.embryo_selected]
+        self.embryo_current_label.setText(f"当前胚子：{' + '.join(selected_names)}")
+
+        # 更新表2显示
+        self.update_embryo_table()
+
+    def on_embryo_clear(self):
+        """清空胚子选择"""
+        self.embryo_selected = []
+        for btn in self.embryo_buttons.values():
+            btn.setChecked(False)
+        self.update_embryo_status()
+        self.embryo_current_label.setText("当前胚子：未设置")
+        self.clear_embryo_table()
+
     def on_tab_changed(self, index):
-        tabs = ["five_star", "three_star"]
+        tabs = ["five_star", "three_star", "embryo"]
         self.current_tab = tabs[index]
 
     def on_entry_clicked(self, value, gear, star):
@@ -441,6 +590,136 @@ class ArtifactPredictor(QMainWindow):
         self.confidence_label.setText("置信度: -")
         self.confidence_label.setStyleSheet("font-weight: bold;")
 
+    def update_embryo_table(self):
+        """更新胚子概率表（表2）"""
+        if len(self.embryo_selected) != 4:
+            return
+
+        try:
+            # 获取当前预测概率
+            probs_percent = None
+            if len(self.input_rows) >= 3:
+                use_dl = (self.mode_combo.currentText() == "深度学习模式" and
+                         self.mode_combo.isEnabled())
+                if use_dl:
+                    last_3 = list(reversed(self.input_rows[:3]))
+                    probs_percent = self.predict_with_dl_smart(last_3)
+                else:
+                    probs_percent = self.predict_with_stats_sliding()
+
+            if probs_percent is None:
+                return
+
+            # 计算胚子词条的条件概率
+            artifact_probs, total_prob = self.calc_artifact_probs(probs_percent, self.embryo_selected)
+
+            # 更新表2表头
+            type_names = {'f': '小防', 's': '小生', 'g': '小攻', 'F': '大防', 'S': '大生',
+                         'G': '大攻', 'j': '精通', 'c': '充能', 'b': '暴击', 'B': '暴伤'}
+            headers = [type_names.get(k, k) for k in self.embryo_selected]
+            self.table2.setHorizontalHeaderLabels(headers)
+
+            # 更新表2数据（条件概率）
+            for col, key in enumerate(self.embryo_selected):
+                type_idx = type_map[key]
+                prob = artifact_probs[type_idx]
+                self.table2.setItem(0, col, QTableWidgetItem(f"{prob:.1f}"))
+
+            # 更新强化建议（区分目标词条和其他词条）
+            # 定义词条分类
+            target_types = {'b': '暴击', 'B': '暴伤'}  # 目标词条（想要）
+
+            # 计算双暴概率（目标词条）
+            target_prob = sum(artifact_probs.get(type_map[t], 0) for t in self.embryo_selected if t in target_types)
+            # 歪率 = 100% - 双暴%（除了bB之外的所有）
+            bad_prob = 100 - target_prob
+
+            # 计算风险度（方案3：风险倍数）
+            # 获取bB和非bB各自的概率
+            bb_probs = {t: artifact_probs.get(type_map[t], 0) for t in self.embryo_selected if t in target_types}
+            non_bb_probs = {t: artifact_probs.get(type_map[t], 0) for t in self.embryo_selected if t not in target_types}
+
+            if bb_probs and non_bb_probs:
+                bb_min_val = min(bb_probs.values())
+                non_bb_max_val = max(non_bb_probs.values())
+                risk_ratio = non_bb_max_val / bb_min_val if bb_min_val > 0 else float('inf')
+
+                # 找出最危险的对比
+                non_bb_max_type = max(non_bb_probs.items(), key=lambda x: x[1])[0]
+                bb_min_type = min(bb_probs.items(), key=lambda x: x[1])[0]
+                type_names = {'f': '小防', 's': '小生', 'g': '小攻', 'F': '大防', 'S': '大生',
+                             'G': '大攻', 'j': '精通', 'c': '充能', 'b': '暴击', 'B': '暴伤'}
+
+                # 风险度显示（独立颜色）
+                if risk_ratio > 1.5:
+                    risk_color = "#F44336"  # 红色 - 高风险
+                elif risk_ratio > 1.0:
+                    risk_color = "#FF9800"  # 橙色 - 中风险
+                else:
+                    risk_color = "#4CAF50"  # 绿色 - 安全
+
+                if risk_ratio > 1.0:
+                    risk_text_html = f'<span style="color: {risk_color};">风险度：{risk_ratio:.2f}x ({type_names[non_bb_max_type]}{non_bb_max_val:.0f}% > {type_names[bb_min_type]}{bb_min_val:.0f}%)</span>'
+                else:
+                    risk_text_html = f'<span style="color: {risk_color};">风险度：{risk_ratio:.2f}x (安全)</span>'
+            else:
+                risk_text_html = ""
+
+            # 建议逻辑：简化颜色规则（无星星图标）
+            if target_prob >= 60:
+                advice_text = f"强化建议: 双暴{target_prob:.0f}% 歪率{bad_prob:.0f}% 建议强化！"
+                advice_color = "#4CAF50"  # 绿色
+            elif target_prob >= 50:
+                advice_text = f"强化建议: 双暴{target_prob:.0f}% 歪率{bad_prob:.0f}% 可考虑强化"
+                advice_color = "#FF9800"  # 橙色
+            else:
+                advice_text = f"强化建议: 双暴{target_prob:.0f}% 歪率{bad_prob:.0f}% 建议继续垫刀"
+                advice_color = "#F44336"  # 红色
+
+            # 分开显示建议和风险度（均匀分布）
+            self.embryo_advice_label.setText(advice_text)
+            self.embryo_advice_label.setStyleSheet(f"font-weight: bold; color: {advice_color};")
+
+            if risk_text_html:
+                self.risk_label.setText(risk_text_html)
+            else:
+                self.risk_label.setText("")
+
+        except Exception as e:
+            print(f"更新胚子表错误: {e}")
+
+    def clear_embryo_table(self):
+        """清空胚子概率表"""
+        for col in range(4):
+            self.table2.setItem(0, col, QTableWidgetItem(""))
+        self.table2.setHorizontalHeaderLabels(["-", "-", "-", "-"])
+        self.embryo_advice_label.setText("强化建议: -")
+        self.embryo_advice_label.setStyleSheet("font-weight: bold;")
+        self.risk_label.setText("")
+
+    def calc_artifact_probs(self, probs, artifact_types):
+        """
+        计算胚子词条的条件概率
+        probs: 10个词条的概率数组
+        artifact_types: 胚子的4个词条类型（如['b', 'B', 'f', 'g']）
+        返回: (条件概率字典, 胚子总概率)
+        """
+        # 获取胚子词条的索引
+        artifact_indices = [type_map[t] for t in artifact_types]
+
+        # 计算胚子总概率
+        total_prob = sum(probs[i] for i in artifact_indices)
+
+        # 计算条件概率 P(X | 出现胚子词条) = P(X) / P(胚子)
+        conditional_probs = {}
+        for idx in artifact_indices:
+            if total_prob > 0:
+                conditional_probs[idx] = probs[idx] / total_prob * 100
+            else:
+                conditional_probs[idx] = 25.0  # 均匀分布
+
+        return conditional_probs, total_prob
+
     def value_to_index(self, value, star):
         """将词条值转换为0-39的索引（NPY文件只支持0-39）"""
         type_char = value[0]
@@ -492,6 +771,10 @@ class ArtifactPredictor(QMainWindow):
 
                 # 更新置信度
                 self.update_confidence(probs_percent)
+
+                # 更新胚子表（如果已设置胚子）
+                if len(self.embryo_selected) == 4:
+                    self.update_embryo_table()
 
         except Exception as e:
             print(f"预测错误: {e}")
