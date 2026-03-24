@@ -1,0 +1,336 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-03-11 22:46:14",
+      "entries": [
+        {
+          "value": "c39",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 1
+        },
+        {
+          "value": "g8",
+          "gear": 2,
+          "star": "3星",
+          "type": "g",
+          "order": 2
+        },
+        {
+          "value": "s100",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 3
+        },
+        {
+          "value": "S32",
+          "gear": 3,
+          "star": "3星",
+          "type": "S",
+          "order": 4
+        },
+        {
+          "value": "c39",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 5
+        },
+        {
+          "value": "j10",
+          "gear": 1,
+          "star": "3星",
+          "type": "j",
+          "order": 6
+        },
+        {
+          "value": "c31",
+          "gear": 2,
+          "star": "3星",
+          "type": "c",
+          "order": 7
+        },
+        {
+          "value": "G25",
+          "gear": 1,
+          "star": "3星",
+          "type": "G",
+          "order": 8
+        },
+        {
+          "value": "j11",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 9
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 10
+        },
+        {
+          "value": "G32",
+          "gear": 3,
+          "star": "3星",
+          "type": "G",
+          "order": 11
+        },
+        {
+          "value": "b16",
+          "gear": 1,
+          "star": "3星",
+          "type": "b",
+          "order": 12
+        },
+        {
+          "value": "c39",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 13
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 14
+        },
+        {
+          "value": "c31",
+          "gear": 2,
+          "star": "3星",
+          "type": "c",
+          "order": 15
+        },
+        {
+          "value": "S32",
+          "gear": 3,
+          "star": "3星",
+          "type": "S",
+          "order": 16
+        },
+        {
+          "value": "F31",
+          "gear": 1,
+          "star": "3星",
+          "type": "F",
+          "order": 17
+        },
+        {
+          "value": "f11",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 18
+        },
+        {
+          "value": "c27",
+          "gear": 1,
+          "star": "3星",
+          "type": "c",
+          "order": 19
+        },
+        {
+          "value": "f11",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 20
+        },
+        {
+          "value": "S35",
+          "gear": 4,
+          "star": "3星",
+          "type": "S",
+          "order": 21
+        },
+        {
+          "value": "s115",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 22
+        },
+        {
+          "value": "G28",
+          "gear": 2,
+          "star": "3星",
+          "type": "G",
+          "order": 23
+        },
+        {
+          "value": "B47",
+          "gear": 4,
+          "star": "3星",
+          "type": "B",
+          "order": 24
+        },
+        {
+          "value": "g9",
+          "gear": 3,
+          "star": "3星",
+          "type": "g",
+          "order": 25
+        },
+        {
+          "value": "f8",
+          "gear": 1,
+          "star": "3星",
+          "type": "f",
+          "order": 26
+        },
+        {
+          "value": "G35",
+          "gear": 4,
+          "star": "3星",
+          "type": "G",
+          "order": 27
+        },
+        {
+          "value": "B54",
+          "gear": 1,
+          "star": "5星",
+          "type": "B",
+          "order": 28
+        },
+        {
+          "value": "s115",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 29
+        },
+        {
+          "value": "f8",
+          "gear": 1,
+          "star": "3星",
+          "type": "f",
+          "order": 30
+        },
+        {
+          "value": "G28",
+          "gear": 2,
+          "star": "3星",
+          "type": "G",
+          "order": 31
+        },
+        {
+          "value": "g7",
+          "gear": 1,
+          "star": "3星",
+          "type": "g",
+          "order": 32
+        },
+        {
+          "value": "c27",
+          "gear": 1,
+          "star": "3星",
+          "type": "c",
+          "order": 33
+        },
+        {
+          "value": "S32",
+          "gear": 3,
+          "star": "3星",
+          "type": "S",
+          "order": 34
+        },
+        {
+          "value": "B42",
+          "gear": 3,
+          "star": "3星",
+          "type": "B",
+          "order": 35
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 36
+        },
+        {
+          "value": "s143",
+          "gear": 4,
+          "star": "3星",
+          "type": "s",
+          "order": 37
+        },
+        {
+          "value": "g8",
+          "gear": 2,
+          "star": "3星",
+          "type": "g",
+          "order": 38
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 39
+        },
+        {
+          "value": "f11",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 40
+        },
+        {
+          "value": "g7",
+          "gear": 1,
+          "star": "3星",
+          "type": "g",
+          "order": 41
+        },
+        {
+          "value": "B42",
+          "gear": 3,
+          "star": "3星",
+          "type": "B",
+          "order": 42
+        },
+        {
+          "value": "c65",
+          "gear": 4,
+          "star": "5星",
+          "type": "c",
+          "order": 43
+        },
+        {
+          "value": "s209",
+          "gear": 1,
+          "star": "5星",
+          "type": "s",
+          "order": 44
+        },
+        {
+          "value": "s209",
+          "gear": 1,
+          "star": "5星",
+          "type": "s",
+          "order": 45
+        },
+        {
+          "value": "B78",
+          "gear": 4,
+          "star": "5星",
+          "type": "B",
+          "order": 46
+        }
+      ],
+      "artifact_type": ""
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "last_updated": "2026-03-11 22:46:14"
+  }
+}

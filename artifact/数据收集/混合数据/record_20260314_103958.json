@@ -1,0 +1,203 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-03-14 10:39:58",
+      "entries": [
+        {
+          "value": "S35",
+          "gear": 4,
+          "star": "3星",
+          "type": "S",
+          "order": 1
+        },
+        {
+          "value": "s115",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 2
+        },
+        {
+          "value": "c39",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 3
+        },
+        {
+          "value": "B37",
+          "gear": 2,
+          "star": "3星",
+          "type": "B",
+          "order": 4
+        },
+        {
+          "value": "G25",
+          "gear": 1,
+          "star": "3星",
+          "type": "G",
+          "order": 5
+        },
+        {
+          "value": "c27",
+          "gear": 1,
+          "star": "3星",
+          "type": "c",
+          "order": 6
+        },
+        {
+          "value": "c39",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 7
+        },
+        {
+          "value": "B7",
+          "gear": 3,
+          "star": "5星",
+          "type": "B",
+          "order": 8
+        },
+        {
+          "value": "B33",
+          "gear": 1,
+          "star": "3星",
+          "type": "B",
+          "order": 9
+        },
+        {
+          "value": "s129",
+          "gear": 3,
+          "star": "3星",
+          "type": "s",
+          "order": 10
+        },
+        {
+          "value": "f10",
+          "gear": 3,
+          "star": "3星",
+          "type": "f",
+          "order": 11
+        },
+        {
+          "value": "B42",
+          "gear": 3,
+          "star": "3星",
+          "type": "B",
+          "order": 12
+        },
+        {
+          "value": "G35",
+          "gear": 4,
+          "star": "3星",
+          "type": "G",
+          "order": 13
+        },
+        {
+          "value": "b27",
+          "gear": 1,
+          "star": "5星",
+          "type": "b",
+          "order": 14
+        },
+        {
+          "value": "f11",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 15
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 16
+        },
+        {
+          "value": "f11",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 17
+        },
+        {
+          "value": "j10",
+          "gear": 1,
+          "star": "3星",
+          "type": "j",
+          "order": 18
+        },
+        {
+          "value": "f11",
+          "gear": 4,
+          "star": "3星",
+          "type": "f",
+          "order": 19
+        },
+        {
+          "value": "S32",
+          "gear": 3,
+          "star": "3星",
+          "type": "S",
+          "order": 20
+        },
+        {
+          "value": "b16",
+          "gear": 1,
+          "star": "3星",
+          "type": "b",
+          "order": 21
+        },
+        {
+          "value": "F31",
+          "gear": 1,
+          "star": "3星",
+          "type": "F",
+          "order": 22
+        },
+        {
+          "value": "j10",
+          "gear": 1,
+          "star": "3星",
+          "type": "j",
+          "order": 23
+        },
+        {
+          "value": "b16",
+          "gear": 1,
+          "star": "3星",
+          "type": "b",
+          "order": 24
+        },
+        {
+          "value": "c39",
+          "gear": 4,
+          "star": "3星",
+          "type": "c",
+          "order": 25
+        },
+        {
+          "value": "F73",
+          "gear": 4,
+          "star": "5星",
+          "type": "F",
+          "order": 26
+        },
+        {
+          "value": "B54",
+          "gear": 1,
+          "star": "5星",
+          "type": "B",
+          "order": 27
+        }
+      ],
+      "artifact_type": ""
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "last_updated": "2026-03-14 10:39:58"
+  }
+}

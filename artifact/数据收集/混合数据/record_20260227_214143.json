@@ -1,0 +1,105 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-02-27 21:41:43",
+      "entries": [
+        {
+          "value": "j13",
+          "gear": 3,
+          "star": "3星",
+          "type": "j",
+          "order": 1
+        },
+        {
+          "value": "f10",
+          "gear": 3,
+          "star": "3星",
+          "type": "f",
+          "order": 2
+        },
+        {
+          "value": "f8",
+          "gear": 1,
+          "star": "3星",
+          "type": "f",
+          "order": 3
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 4
+        },
+        {
+          "value": "G28",
+          "gear": 2,
+          "star": "3星",
+          "type": "G",
+          "order": 5
+        },
+        {
+          "value": "F39",
+          "gear": 3,
+          "star": "3星",
+          "type": "F",
+          "order": 6
+        },
+        {
+          "value": "B42",
+          "gear": 3,
+          "star": "3星",
+          "type": "B",
+          "order": 7
+        },
+        {
+          "value": "f10",
+          "gear": 3,
+          "star": "3星",
+          "type": "f",
+          "order": 8
+        },
+        {
+          "value": "c35",
+          "gear": 3,
+          "star": "3星",
+          "type": "c",
+          "order": 9
+        },
+        {
+          "value": "c31",
+          "gear": 2,
+          "star": "3星",
+          "type": "c",
+          "order": 10
+        },
+        {
+          "value": "j23",
+          "gear": 4,
+          "star": "5星",
+          "type": "j",
+          "order": 11
+        },
+        {
+          "value": "S32",
+          "gear": 3,
+          "star": "3星",
+          "type": "S",
+          "order": 12
+        },
+        {
+          "value": "f19",
+          "gear": 2,
+          "star": "5星",
+          "type": "f",
+          "order": 13
+        }
+      ],
+      "artifact_type": ""
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "last_updated": "2026-02-27 21:41:43"
+  }
+}

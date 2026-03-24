@@ -1,0 +1,147 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-03-21 12:52:22",
+      "entries": [
+        {
+          "value": "G32",
+          "gear": 3,
+          "star": "3星",
+          "type": "G",
+          "order": 1
+        },
+        {
+          "value": "g8",
+          "gear": 2,
+          "star": "3星",
+          "type": "g",
+          "order": 2
+        },
+        {
+          "value": "B33",
+          "gear": 1,
+          "star": "3星",
+          "type": "B",
+          "order": 3
+        },
+        {
+          "value": "f8",
+          "gear": 1,
+          "star": "3星",
+          "type": "f",
+          "order": 4
+        },
+        {
+          "value": "S35",
+          "gear": 4,
+          "star": "3星",
+          "type": "S",
+          "order": 5
+        },
+        {
+          "value": "s115",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 6
+        },
+        {
+          "value": "j14",
+          "gear": 4,
+          "star": "3星",
+          "type": "j",
+          "order": 7
+        },
+        {
+          "value": "B42",
+          "gear": 3,
+          "star": "3星",
+          "type": "B",
+          "order": 8
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 9
+        },
+        {
+          "value": "s115",
+          "gear": 2,
+          "star": "3星",
+          "type": "s",
+          "order": 10
+        },
+        {
+          "value": "b21",
+          "gear": 3,
+          "star": "3星",
+          "type": "b",
+          "order": 11
+        },
+        {
+          "value": "f21",
+          "gear": 3,
+          "star": "5星",
+          "type": "f",
+          "order": 12
+        },
+        {
+          "value": "g7",
+          "gear": 1,
+          "star": "3星",
+          "type": "g",
+          "order": 13
+        },
+        {
+          "value": "G35",
+          "gear": 4,
+          "star": "3星",
+          "type": "G",
+          "order": 14
+        },
+        {
+          "value": "F44",
+          "gear": 4,
+          "star": "3星",
+          "type": "F",
+          "order": 15
+        },
+        {
+          "value": "B54",
+          "gear": 1,
+          "star": "5星",
+          "type": "B",
+          "order": 16
+        },
+        {
+          "value": "b19",
+          "gear": 2,
+          "star": "3星",
+          "type": "b",
+          "order": 17
+        },
+        {
+          "value": "g16",
+          "gear": 2,
+          "star": "5星",
+          "type": "g",
+          "order": 18
+        },
+        {
+          "value": "g18",
+          "gear": 3,
+          "star": "5星",
+          "type": "g",
+          "order": 19
+        }
+      ],
+      "artifact_type": ""
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "last_updated": "2026-03-21 12:52:22"
+  }
+}

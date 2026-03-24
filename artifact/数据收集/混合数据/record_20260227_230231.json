@@ -1,0 +1,112 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-02-27 23:02:31",
+      "entries": [
+        {
+          "value": "f9",
+          "gear": 2,
+          "star": "3星",
+          "type": "f",
+          "order": 1
+        },
+        {
+          "value": "j11",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 2
+        },
+        {
+          "value": "j13",
+          "gear": 3,
+          "star": "3星",
+          "type": "j",
+          "order": 3
+        },
+        {
+          "value": "F31",
+          "gear": 1,
+          "star": "3星",
+          "type": "F",
+          "order": 4
+        },
+        {
+          "value": "G25",
+          "gear": 1,
+          "star": "3星",
+          "type": "G",
+          "order": 5
+        },
+        {
+          "value": "f9",
+          "gear": 2,
+          "star": "3星",
+          "type": "f",
+          "order": 6
+        },
+        {
+          "value": "F39",
+          "gear": 3,
+          "star": "3星",
+          "type": "F",
+          "order": 7
+        },
+        {
+          "value": "B37",
+          "gear": 2,
+          "star": "3星",
+          "type": "B",
+          "order": 8
+        },
+        {
+          "value": "g7",
+          "gear": 1,
+          "star": "3星",
+          "type": "g",
+          "order": 9
+        },
+        {
+          "value": "S25",
+          "gear": 1,
+          "star": "3星",
+          "type": "S",
+          "order": 10
+        },
+        {
+          "value": "g8",
+          "gear": 2,
+          "star": "3星",
+          "type": "g",
+          "order": 11
+        },
+        {
+          "value": "F44",
+          "gear": 4,
+          "star": "3星",
+          "type": "F",
+          "order": 12
+        },
+        {
+          "value": "c52",
+          "gear": 2,
+          "star": "5星",
+          "type": "c",
+          "order": 13
+        },
+        {
+          "value": "G47",
+          "gear": 2,
+          "star": "5星",
+          "type": "G",
+          "order": 14
+        }
+      ],
+      "artifact_type": ""
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "last_updated": "2026-02-27 23:02:31"
+  }
+}
