@@ -1,0 +1,55 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-03-28 07:12:34",
+      "entries": [
+        {
+          "value": "g19",
+          "gear": 4,
+          "star": "5星",
+          "type": "g",
+          "order": 1
+        },
+        {
+          "value": "F73",
+          "gear": 4,
+          "star": "5星",
+          "type": "F",
+          "order": 2
+        },
+        {
+          "value": "S58",
+          "gear": 4,
+          "star": "5星",
+          "type": "S",
+          "order": 3
+        },
+        {
+          "value": "S58",
+          "gear": 4,
+          "star": "5星",
+          "type": "S",
+          "order": 4
+        },
+        {
+          "value": "S58",
+          "gear": 4,
+          "star": "5星",
+          "type": "S",
+          "order": 5
+        },
+        {
+          "value": "G58",
+          "gear": 4,
+          "star": "5星",
+          "type": "G",
+          "order": 6
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "last_updated": "2026-03-28 07:12:34",
+    "version": "1.0"
+  }
+}
