@@ -72,7 +72,7 @@ class ArtifactDataset(Dataset):
         records: list of dict, 每个dict包含timestamp和entries
         use_sliding_window: 是否使用滑动窗口生成多个样本
         star_transition_weight: 跨星级样本的权重倍数（3星→5星转换样本权重更高）
-        max_skip: 最大跳过步数（1=预测下一个，2=跳过1个，3=跳过2个）
+        max_skip: 最大跳过步数（1=预测下一个，2=跳过1个，3=跳过2个，4=跳过3个）
         """
         self.samples = []
         self.weights = []
@@ -187,7 +187,7 @@ class LSTMPredictor(nn.Module):
         self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers,
                            batch_first=True, dropout=dropout)
         
-        # skip嵌入层 (skip范围1-3，嵌入维度4)
+        # skip嵌入层 (skip范围1-4，嵌入维度4)
         self.skip_embedding = nn.Embedding(max_skip + 1, 4)
         
         # 全连接层，输入维度 = hidden_dim + 4 (skip嵌入)
@@ -200,7 +200,7 @@ class LSTMPredictor(nn.Module):
 
     def forward(self, x, skip=None):
         # x: (batch_size, seq_len=3)
-        # skip: (batch_size,) 跳过步数，1=预测下一个，2=跳过1个预测，3=跳过2个预测
+        # skip: (batch_size,) 跳过步数，1=预测下一个，2=跳过1个预测，3=跳过2个预测，4=跳过3个预测
         embedded = self.embedding(x)  # (batch_size, seq_len, embed_dim)
         lstm_out, (hidden, cell) = self.lstm(embedded)
         # 使用最后一个时间步的输出
@@ -403,7 +403,7 @@ class ModelTrainer:
             'hidden_dim': 64,
             'num_layers': 2,
             'num_classes': 10,
-            'max_skip': 3,  # 支持skip参数
+            'max_skip': config.MAX_SKIP,  # 使用配置中的max_skip
             'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'accuracy': accuracy
         }
@@ -488,7 +488,7 @@ class ModelTrainer:
         """
         预测下一个词条 - 支持skip参数
         entries: list of dict, 包含value, gear, star
-        skip: 跳过步数，1=预测下一个，2=跳过1个预测，3=跳过2个预测
+        skip: 跳过步数，1=预测下一个，2=跳过1个预测，3=跳过2个预测，4=跳过3个预测
         返回: 10种词条类型的概率分布
         """
         if self.model is None:
@@ -522,15 +522,27 @@ class ModelTrainer:
         import numpy as np
 
         n = len(all_entries)
-        max_skip = config.MAX_SKIP
+        
+        # 确保模型已加载
+        if self.model is None:
+            if not self.load_model():
+                return None
+        
+        # 获取模型实际支持的max_skip（兼容旧模型）
+        # 从skip_embedding层的大小推断: embedding.num_embeddings = max_skip + 1
+        model_max_skip = self.model.skip_embedding.num_embeddings - 1
+        
+        # 使用配置和模型支持的最小值
+        max_skip = min(config.MAX_SKIP, model_max_skip)
 
         # 最少3个词条：只用 skip=1
-        if n < 5:
+        if n < 4:
             return self.predict(all_entries[-3:], skip=1)
 
-        # 计算可用多少个skip（受限于词条数量和max_skip）
-        # n个词条最多可用 skip = min(max_skip, (n-3))
-        available_skips = min(max_skip, n - 3)
+        # 计算可用多少个skip（受限于词条数量、配置和模型支持）
+        # n个词条最多可用 skip = min(max_skip, (n-2))
+        # 因为：3词条→skip=1, 4词条→skip=2, 5词条→skip=3, 6词条→skip=4
+        available_skips = min(max_skip, n - 2)
 
         predictions = []
         weights = []
@@ -540,6 +552,7 @@ class ModelTrainer:
             # skip=1: 取最后3个 [-3:]
             # skip=2: 往前移1位 [-4:-1]
             # skip=3: 往前移2位 [-5:-2]
+            # skip=4: 往前移3位 [-6:-3]
             start_idx = -(3 + skip - 1)
             end_idx = start_idx + 3 if start_idx + 3 < 0 else None
 
@@ -557,9 +570,11 @@ class ModelTrainer:
                             weight = config.SKIP_2_WEIGHT
                         elif skip == 3:
                             weight = config.SKIP_3_WEIGHT
+                        elif skip == 4:
+                            weight = config.SKIP_4_WEIGHT
                         else:
-                            # skip > 3 时，权重递减
-                            weight = config.SKIP_3_WEIGHT * (0.5 ** (skip - 3))
+                            # skip > 4 时，权重递减
+                            weight = config.SKIP_4_WEIGHT * (0.5 ** (skip - 4))
                         weights.append(weight)
 
         if not predictions:

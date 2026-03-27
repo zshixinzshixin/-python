@@ -208,7 +208,7 @@ class ConfigEditor(QMainWindow):
         self.max_skip = self.create_param_row(
             layout,
             "最大Skip步数:",
-            "1=只预测下一个, 2=跳过1个, 3=跳过2个",
+            "1=只预测下一个, 2=跳过1个, 3=跳过2个, 4=跳过3个",
             1, 5, 0
         )
 
@@ -238,6 +238,13 @@ class ConfigEditor(QMainWindow):
             "Skip=3权重:",
             "长期预测权重",
             0.05, 0.2, 2
+        )
+
+        self.skip_4_weight = self.create_param_row(
+            layout,
+            "Skip=4权重:",
+            "超长期预测权重",
+            0.02, 0.1, 2
         )
 
         self.form_layout.addWidget(group)
@@ -392,6 +399,7 @@ class ConfigEditor(QMainWindow):
             self.skip_1_weight_5to6.setValue(config.SKIP_1_WEIGHT_5TO6)
             self.skip_2_weight.setValue(config.SKIP_2_WEIGHT)
             self.skip_3_weight.setValue(config.SKIP_3_WEIGHT)
+            self.skip_4_weight.setValue(config.SKIP_4_WEIGHT)
             self.embed_dim.setValue(config.EMBED_DIM)
             self.hidden_dim.setValue(config.HIDDEN_DIM)
             self.num_layers.setValue(config.NUM_LAYERS)
@@ -430,6 +438,7 @@ class ConfigEditor(QMainWindow):
                 ('SKIP_1_WEIGHT_5TO6', self.skip_1_weight_5to6.value()),
                 ('SKIP_2_WEIGHT', self.skip_2_weight.value()),
                 ('SKIP_3_WEIGHT', self.skip_3_weight.value()),
+                ('SKIP_4_WEIGHT', self.skip_4_weight.value()),
                 ('EMBED_DIM', self.embed_dim.value()),
                 ('HIDDEN_DIM', self.hidden_dim.value()),
                 ('NUM_LAYERS', self.num_layers.value()),
