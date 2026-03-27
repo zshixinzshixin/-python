@@ -278,7 +278,7 @@ class ModelTrainer:
 
         # 初始化模型
         self.model = LSTMPredictor().to(self.device)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss(reduction='none')  # 返回每个样本的损失，用于加权
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=max(5, patience//2), factor=0.5)
 
@@ -325,7 +325,7 @@ class ModelTrainer:
                 for inputs, skips, targets, _ in test_loader:
                     inputs, skips, targets = inputs.to(self.device), skips.to(self.device), targets.to(self.device)
                     outputs = self.model(inputs, skips)
-                    loss = criterion(outputs, targets)
+                    loss = criterion(outputs, targets).mean()  # 测试阶段取平均
 
                     test_loss += loss.item()
                     _, predicted = torch.max(outputs, 1)
@@ -536,8 +536,11 @@ class ModelTrainer:
         weights = []
 
         for skip in range(1, available_skips + 1):
-            # 获取输入序列：从后往前取3个，再往前skip-1个
-            start_idx = -(3 + (skip - 1) * 2)
+            # 获取输入序列：从后往前取3个，再往前skip-1个位置
+            # skip=1: 取最后3个 [-3:]
+            # skip=2: 往前移1位 [-4:-1]
+            # skip=3: 往前移2位 [-5:-2]
+            start_idx = -(3 + skip - 1)
             end_idx = start_idx + 3 if start_idx + 3 < 0 else None
 
             if abs(start_idx) <= n:

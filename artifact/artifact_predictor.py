@@ -834,8 +834,9 @@ class ArtifactPredictor(QMainWindow):
         num_windows = n - 2
         for i in range(num_windows):
             window = all_rows[i:i+3]  # [i, i+1, i+2]
-            # 权重：越近的窗口权重越高
-            weight = (i + 1) / num_windows  # 线性递增权重
+            # 权重：越近的窗口权重越高，使用配置文件参数
+            position_ratio = (i + 1) / num_windows  # 位置比例 0->1
+            weight = config.SLIDING_WINDOW_BASE + config.SLIDING_WINDOW_RANGE * position_ratio
             windows.append(window)
             weights.append(weight)
 
@@ -1078,7 +1079,7 @@ class ArtifactPredictor(QMainWindow):
 
             if reply == QMessageBox.Yes:
                 trainer = ModelTrainer(self.data_manager)
-                success, message = trainer.train(epochs=50)
+                success, message = trainer.train(epochs=config.EPOCHS)
 
                 if success:
                     QMessageBox.information(self, "训练完成", message)
