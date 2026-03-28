@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QGridLayout, QTabWidget, QGroupBox, QPushButton, QLabel, QTableWidget,
     QTableWidgetItem, QHeaderView, QScrollArea, QComboBox, QMessageBox
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon
 
 # 导入配置
@@ -175,6 +175,25 @@ class DataManager:
             return True, filepath
         except Exception as e:
             return False, str(e)
+
+
+class TrainingThread(QThread):
+    """训练线程，避免阻塞 GUI"""
+    finished = pyqtSignal(bool, str)
+    
+    def __init__(self, data_manager, epochs):
+        super().__init__()
+        self.data_manager = data_manager
+        self.epochs = epochs
+    
+    def run(self):
+        try:
+            from dl_model import ModelTrainer
+            trainer = ModelTrainer(self.data_manager)
+            success, message = trainer.train(epochs=self.epochs)
+            self.finished.emit(success, message)
+        except Exception as e:
+            self.finished.emit(False, f"训练过程出错: {str(e)}")
 
 
 class ArtifactPredictor(QMainWindow):
@@ -1069,27 +1088,35 @@ class ArtifactPredictor(QMainWindow):
             QMessageBox.warning(self, "数据不足", f"需要至少10条记录才能训练模型\n当前只有{count}条")
             return
 
-        # 导入训练模块
-        try:
-            from dl_model import ModelTrainer
+        reply = QMessageBox.question(self, "确认训练",
+            f"当前有 {count} 条记录\n训练可能需要几分钟，是否继续？",
+            QMessageBox.Yes | QMessageBox.No)
 
-            reply = QMessageBox.question(self, "确认训练",
-                f"当前有 {count} 条记录\n训练可能需要几分钟，是否继续？",
-                QMessageBox.Yes | QMessageBox.No)
-
-            if reply == QMessageBox.Yes:
-                trainer = ModelTrainer(self.data_manager)
-                success, message = trainer.train(epochs=config.EPOCHS)
-
-                if success:
-                    QMessageBox.information(self, "训练完成", message)
-                else:
-                    QMessageBox.critical(self, "训练失败", message)
-
-                self.update_data_status()
-
-        except Exception as e:
-            QMessageBox.critical(self, "错误", f"训练过程出错:\n{str(e)}")
+        if reply == QMessageBox.Yes:
+            # 禁用训练按钮，防止重复点击
+            sender = self.sender()
+            if sender:
+                sender.setEnabled(False)
+            
+            # 创建并启动训练线程
+            self.training_thread = TrainingThread(self.data_manager, config.EPOCHS)
+            self.training_thread.finished.connect(self.on_training_finished)
+            self.training_thread.start()
+    
+    def on_training_finished(self, success, message):
+        """训练完成回调"""
+        # 重新启用训练按钮
+        for btn in self.findChildren(QPushButton):
+            if btn.text() == "训练模型":
+                btn.setEnabled(True)
+                break
+        
+        if success:
+            QMessageBox.information(self, "训练完成", message)
+        else:
+            QMessageBox.critical(self, "训练失败", message)
+        
+        self.update_data_status()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,30 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
-# 稳定工作版 - 使用Tree确保库完整包含
+# 精简版 - 依赖 PyInstaller 自动分析，不使用 Tree
 
-from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT, Tree
+from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
 from PyInstaller.utils.hooks import collect_dynamic_libs
-import pandas
-import numpy
 import torch
 
 block_cipher = None
-
-# 获取库路径
-def get_pandas_path():
-    return pandas.__path__[0]
-
-def get_numpy_path():
-    return numpy.__path__[0]
-
-def get_torch_path():
-    return torch.__path__[0]
 
 # 基础数据文件
 datas = [
     ('config.py', '.'),
     ('genmat401.npy', '.'),
     ('dl_model.py', '.'),
-    ('icon', 'icon'),  # 图标文件夹
+    ('icon', 'icon'),
 ]
 
 a = Analysis(
@@ -33,12 +21,15 @@ a = Analysis(
     binaries=[],
     datas=datas,
     hiddenimports=[
-        # PyTorch C扩展
+        # PyTorch
         'torch._C',
         'torch._C._nn',
         'torch._C._jit',
         'torch._C._autograd',
         'torch._C._sparse',
+        'torch.nn',
+        'torch.optim',
+        'torch.utils.data',
         # Pandas
         'pandas._libs.tslibs.timedeltas',
         'pandas._libs.tslibs.np_datetime',
@@ -55,10 +46,6 @@ a = Analysis(
         'numpy.core.umath',
         'numpy.random',
         'numpy.linalg',
-        # PyTorch
-        'torch.nn',
-        'torch.optim',
-        'torch.utils.data',
         # 其他
         'openpyxl',
         'openpyxl.cell._writer',
@@ -93,21 +80,7 @@ a = Analysis(
     noarchive=False,
 )
 
-
-
-# 使用Tree确保关键目录完整
-# 排除静态库文件(.lib)以减小体积，这些文件编译时需要但运行时不需要
-numpy_tree = Tree(get_numpy_path(), prefix='numpy', excludes=["*.pyc", "__pycache__", "*.lib"])
-pandas_tree = Tree(get_pandas_path(), prefix='pandas', excludes=["*.pyc", "__pycache__", "*.lib"])
-
-a.datas += numpy_tree
-a.datas += pandas_tree
-
-# torch 的 Python 文件用 Tree 添加到 datas
-torch_tree = Tree(get_torch_path(), prefix='torch', excludes=["*.pyc", "__pycache__", "test", "testing", "*.lib", "*.dll", "*.pyd"])
-a.datas += torch_tree
-
-# 收集动态库到 a.binaries（collect_dynamic_libs 返回二元组，转为三元组）
+# 收集动态库（二元组转三元组）
 for name, path in collect_dynamic_libs('numpy'):
     a.binaries.append((name, path, 'BINARY'))
 for name, path in collect_dynamic_libs('pandas'):
@@ -115,26 +88,15 @@ for name, path in collect_dynamic_libs('pandas'):
 for name, path in collect_dynamic_libs('torch'):
     a.binaries.append((name, path, 'BINARY'))
 
-# 如果 venv 中有 MKL，添加到 binaries
+# torch 核心 DLLs
+torch_path = torch.__path__[0]
 import os
-venv_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(torch.__file__))))
-mkl_bin_path = os.path.join(venv_path, 'Library', 'bin')
-if os.path.exists(mkl_bin_path):
-    for dll in os.listdir(mkl_bin_path):
-        if dll.startswith('mkl') and dll.endswith('.dll'):
-            a.binaries.append((dll, os.path.join(mkl_bin_path, dll), 'BINARY'))
-        elif dll.startswith('libiomp') and dll.endswith('.dll'):
-            a.binaries.append((dll, os.path.join(mkl_bin_path, dll), 'BINARY'))
-
-# torch 的 DLLs 需要显式添加到 binaries（PyTorch 2.x 用 torch_python.dll 代替 _C.pyd）
-import os
-torch_path = get_torch_path()
 for dll_file in ['torch_python.dll', 'torch.dll', 'torch_cpu.dll', 'torch_global_deps.dll']:
     dll_full_path = os.path.join(torch_path, 'lib', dll_file)
     if os.path.exists(dll_full_path):
         a.binaries.append((dll_file, dll_full_path, 'BINARY'))
 
-# OpenMP DLL（torch 依赖，用于并行计算）
+# OpenMP DLL
 for dll_file in ['libiomp5md.dll', 'libiompstubs5md.dll']:
     dll_full_path = os.path.join(torch_path, 'lib', dll_file)
     if os.path.exists(dll_full_path):
@@ -152,13 +114,13 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=True,  # 开启控制台窗口查看错误和调试信息
+    console=False, # 关闭控制台窗口查看错误和调试信息
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon\\icon.ico',  # exe文件图标
+    icon='icon\\icon.ico',
 )
 
 coll = COLLECT(
