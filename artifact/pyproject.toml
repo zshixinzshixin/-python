@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pyinstaller>=6.0"]  # 打包工具，uv pip install pyinstaller 手动安装
+dev = ["pyinstaller>=6.0"]  # 打包工具，uv pip install pyinstaller 手动安装 推荐安装 pyinstaller==6.11.0
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
