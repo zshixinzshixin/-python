@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-圣遗物预测器 - S版
+圣遗物预测器 - 轻量版
 只保留深度学习预测功能
 """
 
@@ -137,7 +137,7 @@ class ArtifactPredictor(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("原神圣遗物词条预测工具 - S版")
+        self.setWindowTitle("原神圣遗物词条预测工具 - 轻量版")
         self.setMinimumSize(1200, 700)
 
         # 设置图标

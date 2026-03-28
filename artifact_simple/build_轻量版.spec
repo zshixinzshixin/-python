@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# S版打包配置 - 圣遗物预测器S版
+# 轻量版打包配置 - 圣遗物预测器轻量版
 
 from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT, Tree
 from PyInstaller.utils.hooks import collect_dynamic_libs
@@ -19,24 +19,17 @@ def get_numpy_path():
 def get_torch_path():
     return torch.__path__[0]
 
-# 收集动态库
-binaries = []
-binaries.extend(collect_dynamic_libs('numpy'))
-binaries.extend(collect_dynamic_libs('pandas'))
-binaries.extend(collect_dynamic_libs('torch'))
-
 # 基础数据文件
 datas = [
     ('config.py', '.'),
     ('dl_model.py', '.'),
     ('icon', 'icon'),  # 图标文件夹
-    ('强化记录/models/best_model.pt', '强化记录/models'),  # 预训练模型
 ]
 
 a = Analysis(
     ['artifact_predictor.py'],
     pathex=['.'],
-    binaries=binaries,
+    binaries=[],
     datas=datas,
     hiddenimports=[
         # PyTorch C扩展
@@ -57,6 +50,7 @@ a = Analysis(
         # NumPy
         'numpy.core._dtype_ctypes',
         'numpy.core._multiarray_umath',
+        'numpy.core.multiarray',
         'numpy.core.umath',
         'numpy.random',
         'numpy.linalg',
@@ -99,14 +93,37 @@ a = Analysis(
 )
 
 # 使用Tree确保关键目录完整
-# 排除静态库文件(.lib)以减小体积，这些文件编译时需要但运行时不需要
 numpy_tree = Tree(get_numpy_path(), prefix='numpy', excludes=["*.pyc", "__pycache__", "*.lib"])
 pandas_tree = Tree(get_pandas_path(), prefix='pandas', excludes=["*.pyc", "__pycache__", "*.lib"])
-torch_tree = Tree(get_torch_path(), prefix='torch', excludes=["*.pyc", "__pycache__", "test", "testing", "*.lib"])
 
 a.datas += numpy_tree
 a.datas += pandas_tree
+
+# torch 的 Python 文件用 Tree 添加到 datas
+torch_tree = Tree(get_torch_path(), prefix='torch', excludes=["*.pyc", "__pycache__", "test", "testing", "*.lib", "*.dll", "*.pyd"])
 a.datas += torch_tree
+
+# 收集动态库到 a.binaries（collect_dynamic_libs 返回二元组，转为三元组）
+for name, path in collect_dynamic_libs('numpy'):
+    a.binaries.append((name, path, 'BINARY'))
+for name, path in collect_dynamic_libs('pandas'):
+    a.binaries.append((name, path, 'BINARY'))
+for name, path in collect_dynamic_libs('torch'):
+    a.binaries.append((name, path, 'BINARY'))
+
+# torch 的 DLLs 需要显式添加到 binaries
+torch_path = get_torch_path()
+import os
+for dll_file in ['torch_python.dll', 'torch.dll', 'torch_cpu.dll', 'torch_global_deps.dll']:
+    dll_full_path = os.path.join(torch_path, 'lib', dll_file)
+    if os.path.exists(dll_full_path):
+        a.binaries.append((dll_file, dll_full_path, 'BINARY'))
+
+# OpenMP DLL
+for dll_file in ['libiomp5md.dll', 'libiompstubs5md.dll']:
+    dll_full_path = os.path.join(torch_path, 'lib', dll_file)
+    if os.path.exists(dll_full_path):
+        a.binaries.append((dll_file, dll_full_path, 'BINARY'))
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
@@ -115,7 +132,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='圣遗物预测器S版',
+    name='圣遗物预测器_轻量版',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -126,7 +143,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon\\icon.ico',  # exe文件图标
+    icon='icon\\icon.ico',
 )
 
 coll = COLLECT(
@@ -137,5 +154,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name='圣遗物预测器S版',
+    name='圣遗物预测器_轻量版',
 )
