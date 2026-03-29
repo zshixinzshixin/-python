@@ -405,7 +405,7 @@ class ArtifactPredictor(QMainWindow):
 
     def on_entry_clicked(self, value, star):
         """处理词条按钮点击"""
-        gear = self.get_gear_from_value(value)
+        gear = self.get_gear_from_value(value, star)
 
         # 创建行widget
         row_widget = QWidget()
@@ -436,10 +436,14 @@ class ArtifactPredictor(QMainWindow):
 
         self.update_prediction()
 
-    def get_gear_from_value(self, value):
+    def get_gear_from_value(self, value, star="5星"):
         """从词条值获取档位"""
         type_char = value[0]
-        values_list = FIVE_STAR_VALUES.get(type_char, [])
+        # 根据星级选择对应的词条定义
+        if star == "3星":
+            values_list = THREE_STAR_VALUES.get(type_char, [])
+        else:
+            values_list = FIVE_STAR_VALUES.get(type_char, [])
         try:
             return values_list.index(value) + 1
         except ValueError:
