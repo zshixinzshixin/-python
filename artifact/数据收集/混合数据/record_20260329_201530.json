@@ -1,0 +1,63 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-03-29 20:15:30",
+      "entries": [
+        {
+          "value": "S35",
+          "gear": 4,
+          "star": "3星",
+          "type": "S",
+          "order": 1
+        },
+        {
+          "value": "F39",
+          "gear": 3,
+          "star": "3星",
+          "type": "F",
+          "order": 2
+        },
+        {
+          "value": "j11",
+          "gear": 2,
+          "star": "3星",
+          "type": "j",
+          "order": 3
+        },
+        {
+          "value": "s100",
+          "gear": 1,
+          "star": "3星",
+          "type": "s",
+          "order": 4
+        },
+        {
+          "value": "G35",
+          "gear": 4,
+          "star": "3星",
+          "type": "G",
+          "order": 5
+        },
+        {
+          "value": "G53",
+          "gear": 3,
+          "star": "5星",
+          "type": "G",
+          "order": 6
+        },
+        {
+          "value": "s299",
+          "gear": 4,
+          "star": "5星",
+          "type": "s",
+          "order": 7
+        }
+      ],
+      "artifact_type": ""
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "last_updated": "2026-03-29 20:15:30"
+  }
+}
