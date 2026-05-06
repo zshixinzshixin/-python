@@ -78,7 +78,7 @@ class ArtifactDataset(Dataset):
         self.weights = []
 
         if use_sliding_window and len(records) >= 2:
-            # 将所有记录合并成一个长序列
+            # 滑动窗口方案：合并所有记录生成样本
             all_entries = []
             for record in records:
                 all_entries.extend(record['entries'])
@@ -99,11 +99,10 @@ class ArtifactDataset(Dataset):
                     target_idx = i + 3 + skip - 1  # skip=1时预测第4个(i+3)
                     if target_idx < len(all_entries):
                         target_type = type_map[all_entries[target_idx]['value'][0]]
-                        target_gear = all_entries[target_idx]['gear'] - 1  # 转为0-3
                         target_star = all_entries[target_idx]['star']
 
-                        # 样本格式：(input_seq, skip, target_type, target_gear)
-                        self.samples.append((input_seq, skip, target_type, target_gear))
+                        # 样本格式：(input_seq, skip, target_type)
+                        self.samples.append((input_seq, skip, target_type))
 
                         # 计算权重：跨星级样本权重更高，skip大的样本权重略低
                         has_3_star = '3星' in stars
@@ -137,10 +136,9 @@ class ArtifactDataset(Dataset):
                         target_idx = i + 3 + skip - 1
                         if target_idx < len(entries):
                             target_type = type_map[entries[target_idx]['value'][0]]
-                            target_gear = entries[target_idx]['gear'] - 1  # 转为0-3
                             target_star = entries[target_idx]['star']
 
-                            self.samples.append((input_seq, skip, target_type, target_gear))
+                            self.samples.append((input_seq, skip, target_type))
 
                             # 计算权重
                             has_3_star = '3星' in stars
@@ -157,19 +155,18 @@ class ArtifactDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx):
-        input_seq, skip, target_type, target_gear = self.samples[idx]
+        input_seq, skip, target_type = self.samples[idx]
         weight = self.weights[idx]
         return (torch.tensor(input_seq, dtype=torch.long),
                 torch.tensor(skip, dtype=torch.long),
                 torch.tensor(target_type, dtype=torch.long),
-                torch.tensor(target_gear, dtype=torch.long),
                 torch.tensor(weight, dtype=torch.float))
 
 
 class LSTMPredictor(nn.Module):
-    """LSTM预测模型 - 支持skip参数，同时预测词条类型和档位"""
+    """LSTM预测模型 - 支持skip参数，只预测词条类型"""
 
-    def __init__(self, vocab_size=80, embed_dim=None, hidden_dim=None, num_layers=None, num_classes=None, num_gears=4, dropout=None, max_skip=None):
+    def __init__(self, vocab_size=80, embed_dim=None, hidden_dim=None, num_layers=None, num_classes=None, dropout=None, max_skip=None):
         # 使用配置文件中的参数
         if embed_dim is None:
             embed_dim = config.EMBED_DIM
@@ -187,7 +184,6 @@ class LSTMPredictor(nn.Module):
         super(LSTMPredictor, self).__init__()
 
         self.num_classes = num_classes
-        self.num_gears = num_gears
 
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers,
@@ -196,18 +192,13 @@ class LSTMPredictor(nn.Module):
         # skip嵌入层 (skip范围1-4，嵌入维度4)
         self.skip_embedding = nn.Embedding(max_skip + 1, 4)
 
-        # 共享特征层
-        self.shared_fc = nn.Sequential(
+        # 全连接层
+        self.fc = nn.Sequential(
             nn.Linear(hidden_dim + 4, hidden_dim // 2),
             nn.ReLU(),
-            nn.Dropout(dropout)
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim // 2, num_classes)
         )
-
-        # 类型预测头 (10类)
-        self.type_fc = nn.Linear(hidden_dim // 2, num_classes)
-
-        # 档位预测头 (4类)
-        self.gear_fc = nn.Linear(hidden_dim // 2, num_gears)
 
     def forward(self, x, skip=None):
         # x: (batch_size, seq_len=3)
@@ -227,16 +218,10 @@ class LSTMPredictor(nn.Module):
             skip_embed = self.skip_embedding(torch.zeros(batch_size, dtype=torch.long, device=last_output.device))
             last_output = torch.cat([last_output, skip_embed], dim=1)
 
-        # 共享特征
-        shared_features = self.shared_fc(last_output)  # (batch_size, hidden_dim // 2)
-
         # 类型预测
-        type_output = self.type_fc(shared_features)  # (batch_size, num_classes)
+        output = self.fc(last_output)  # (batch_size, num_classes)
 
-        # 档位预测
-        gear_output = self.gear_fc(shared_features)  # (batch_size, num_gears)
-
-        return type_output, gear_output
+        return output
 
 
 class ModelTrainer:
@@ -297,383 +282,354 @@ class ModelTrainer:
 
         # 初始化模型
         self.model = LSTMPredictor().to(self.device)
-        type_criterion = nn.CrossEntropyLoss(reduction='none')  # 类型损失
-        gear_criterion = nn.CrossEntropyLoss(reduction='none')  # 档位损失
+        criterion = nn.CrossEntropyLoss(reduction='none')
         optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=max(5, patience//2), factor=0.5)
 
-        best_type_accuracy = 0  # 以类型准确率为准
+        best_accuracy = 0
+        best_top3_accuracy = 0
         best_model_state = None
         patience_counter = 0
 
         self.training_log = []
+        
+        # 记录数据集大小
+        train_size = len(train_loader.dataset)
+        test_size = len(test_loader.dataset)
 
         for epoch in range(epochs):
             # 训练阶段
             self.model.train()
             train_loss = 0
-            train_type_correct = 0
-            train_gear_correct = 0
+            train_correct = 0
+            train_top3_correct = 0
             train_total = 0
 
-            for inputs, skips, target_types, target_gears, weights in train_loader:
+            for inputs, skips, targets, weights in train_loader:
                 inputs, skips = inputs.to(self.device), skips.to(self.device)
-                target_types = target_types.to(self.device)
-                target_gears = target_gears.to(self.device)
+                targets = targets.to(self.device)
                 weights = weights.to(self.device)
 
                 optimizer.zero_grad()
-                type_outputs, gear_outputs = self.model(inputs, skips)
+                outputs = self.model(inputs, skips)
 
-                # 计算类型损失和档位损失
-                type_loss = type_criterion(type_outputs, target_types)
-                gear_loss = gear_criterion(gear_outputs, target_gears)
-
-                # 总损失 = 类型损失 + 档位损失（权重相同）
-                total_loss = type_loss + gear_loss
-                weighted_loss = (total_loss * weights).mean()
+                loss = criterion(outputs, targets)
+                weighted_loss = (loss * weights).mean()
                 weighted_loss.backward()
                 optimizer.step()
 
                 train_loss += weighted_loss.item()
 
-                # 计算类型准确率
-                _, type_predicted = torch.max(type_outputs, 1)
-                train_type_correct += (type_predicted == target_types).sum().item()
+                # Top-1准确率
+                _, predicted = torch.max(outputs, 1)
+                train_correct += (predicted == targets).sum().item()
+                
+                # Top-3准确率
+                _, top3_pred = torch.topk(outputs, 3, dim=1)
+                for i in range(targets.size(0)):
+                    if targets[i] in top3_pred[i]:
+                        train_top3_correct += 1
+                
+                train_total += targets.size(0)
 
-                # 计算档位准确率
-                _, gear_predicted = torch.max(gear_outputs, 1)
-                train_gear_correct += (gear_predicted == target_gears).sum().item()
-
-                train_total += target_types.size(0)
-
-            # 分别计算类型和档位准确率
-            train_type_acc = 100 * train_type_correct / train_total
-            train_gear_acc = 100 * train_gear_correct / train_total
-            train_accuracy = (train_type_acc + train_gear_acc) / 2  # 综合准确率
+            train_accuracy = 100 * train_correct / train_total
+            train_top3_accuracy = 100 * train_top3_correct / train_total
 
             # 测试阶段
             self.model.eval()
             test_loss = 0
-            test_type_correct = 0
-            test_gear_correct = 0
+            test_correct = 0
+            test_top3_correct = 0
             test_total = 0
 
             with torch.no_grad():
-                for inputs, skips, target_types, target_gears, _ in test_loader:
+                for inputs, skips, targets, _ in test_loader:
                     inputs, skips = inputs.to(self.device), skips.to(self.device)
-                    target_types = target_types.to(self.device)
-                    target_gears = target_gears.to(self.device)
+                    targets = targets.to(self.device)
 
-                    type_outputs, gear_outputs = self.model(inputs, skips)
-
-                    type_loss = type_criterion(type_outputs, target_types).mean()
-                    gear_loss = gear_criterion(gear_outputs, target_gears).mean()
-                    loss = type_loss + gear_loss
+                    outputs = self.model(inputs, skips)
+                    loss = criterion(outputs, targets).mean()
 
                     test_loss += loss.item()
 
-                    # 计算类型准确率
-                    _, type_predicted = torch.max(type_outputs, 1)
-                    test_type_correct += (type_predicted == target_types).sum().item()
+                    # Top-1准确率
+                    _, predicted = torch.max(outputs, 1)
+                    test_correct += (predicted == targets).sum().item()
+                    
+                    # Top-3准确率
+                    _, top3_pred = torch.topk(outputs, 3, dim=1)
+                    for i in range(targets.size(0)):
+                        if targets[i] in top3_pred[i]:
+                            test_top3_correct += 1
+                    
+                    test_total += targets.size(0)
 
-                    # 计算档位准确率
-                    _, gear_predicted = torch.max(gear_outputs, 1)
-                    test_gear_correct += (gear_predicted == target_gears).sum().item()
-
-                    test_total += target_types.size(0)
-
-            # 分别计算类型和档位准确率
-            test_type_acc = 100 * test_type_correct / test_total
-            test_gear_acc = 100 * test_gear_correct / test_total
-            test_accuracy = (test_type_acc + test_gear_acc) / 2  # 综合准确率
+            test_accuracy = 100 * test_correct / test_total
+            test_top3_accuracy = 100 * test_top3_correct / test_total
 
             # 记录日志
             log_entry = {
                 'epoch': epoch + 1,
                 'train_loss': train_loss / len(train_loader),
                 'train_acc': train_accuracy,
-                'train_type_acc': train_type_acc,
-                'train_gear_acc': train_gear_acc,
+                'train_top3_acc': train_top3_accuracy,
                 'test_loss': test_loss / len(test_loader),
                 'test_acc': test_accuracy,
-                'test_type_acc': test_type_acc,
-                'test_gear_acc': test_gear_acc
+                'test_top3_acc': test_top3_accuracy
             }
             self.training_log.append(log_entry)
 
             # 学习率调整
-            scheduler.step(test_loss)
+            scheduler.step(test_loss / len(test_loader))
 
-            # 早停检查（以类型准确率为准）
-            if test_type_acc > best_type_accuracy:
-                best_type_accuracy = test_type_acc
+            # 早停检查（以Top-1测试准确率为准）
+            if test_accuracy > best_accuracy:
+                best_accuracy = test_accuracy
+                best_top3_accuracy = test_top3_accuracy
                 best_model_state = self.model.state_dict().copy()
                 patience_counter = 0
             else:
                 patience_counter += 1
 
             if patience_counter >= patience:
-                print(f"早停于epoch {epoch + 1}")
+                print(f"早停触发，最佳测试准确率: {best_accuracy:.2f}%, Top-3准确率: {best_top3_accuracy:.2f}%")
+                stopped_by_early = True
                 break
-
-            if (epoch + 1) % 10 == 0:
-                print(f"Epoch {epoch+1}/{epochs}, Train Acc: {train_accuracy:.2f}%, Test Acc: {test_accuracy:.2f}% (类型: {test_type_acc:.2f}%, 档位: {test_gear_acc:.2f}%)")
+        else:
+            stopped_by_early = False
 
         # 加载最佳模型
-        if best_model_state:
+        if best_model_state is not None:
             self.model.load_state_dict(best_model_state)
 
-        # 保存模型（传入类型准确率）
-        self.save_model(accuracy=best_type_accuracy)
+        # 生成训练结果报告
+        final_log = self.training_log[-1] if self.training_log else None
+        if final_log:
+            # 计算收敛能力（分析最佳准确率时刻的状态）
+            import numpy as np
+            
+            # 找到最佳准确率所在的轮次
+            best_epoch_idx = max(range(len(self.training_log)), 
+                                key=lambda i: self.training_log[i]['test_acc'])
+            best_epoch = self.training_log[best_epoch_idx]
+            best_epoch_num = best_epoch['epoch']
+            total_epochs = len(self.training_log)
+            
+            # 分析最佳点附近的趋势（最佳点前3轮到后2轮）
+            start_idx = max(0, best_epoch_idx - 2)
+            end_idx = min(len(self.training_log), best_epoch_idx + 3)
+            nearby_logs = self.training_log[start_idx:end_idx]
+            nearby_accs = [log['test_acc'] for log in nearby_logs]
+            
+            # 最佳点附近是否稳定
+            if len(nearby_accs) >= 3:
+                if max(nearby_accs) - min(nearby_accs) < 1.5:
+                    stability = f"已平稳（第{best_epoch_num}轮）"
+                elif nearby_accs[-1] > nearby_accs[0]:
+                    stability = f"上升中（第{best_epoch_num}轮）"
+                else:
+                    stability = f"波动中（第{best_epoch_num}轮）"
+            else:
+                stability = f"数据不足（第{best_epoch_num}轮）"
+            
+            # 最佳点时的损失趋势（对比之前）
+            if best_epoch_idx > 0:
+                prev_loss = self.training_log[best_epoch_idx - 1]['test_loss']
+                curr_loss = best_epoch['test_loss']
+                if curr_loss < prev_loss * 0.98:
+                    loss_status = "损失下降"
+                elif curr_loss > prev_loss * 1.02:
+                    loss_status = "损失上升"
+                else:
+                    loss_status = "损失平稳"
+            else:
+                loss_status = "初始轮次"
+            
+            # 平稳能力评级
+            if "已平稳" in stability:
+                stability_level = "S"
+            elif "上升中" in stability:
+                stability_level = "A"
+            else:
+                stability_level = "B"
+            
+            # 损失状态评级
+            if "下降" in loss_status:
+                loss_level = "S"
+            elif "平稳" in loss_status:
+                loss_level = "A"
+            else:
+                loss_level = "B"
+            
+            # 泛化能力评级
+            generalization_gap = best_epoch['train_acc'] - best_epoch['test_acc']
+            if generalization_gap < 5.0:
+                generalization_level = "S"
+                generalization_desc = "差距<5%"
+            elif generalization_gap < 15.0:
+                generalization_level = "A"
+                generalization_desc = "差距5-15%"
+            else:
+                generalization_level = "B"
+                generalization_desc = "差距>15%"
+            
+            # 计算模型质量等级（综合准确率和稳定性）
+            # 准确率评分
+            if best_accuracy >= 20 or best_top3_accuracy >= 50:
+                acc_score = 3
+            elif best_accuracy >= 15 or best_top3_accuracy >= 40:
+                acc_score = 2
+            elif best_accuracy >= 12 or best_top3_accuracy >= 30:
+                acc_score = 1
+            else:
+                acc_score = 0
+            
+            # 稳定性评分（每个S级+1分）
+            stab_score = 0
+            if stability_level == "S": stab_score += 1
+            if loss_level == "S": stab_score += 1
+            if generalization_level == "S": stab_score += 1
+            
+            # 综合评级
+            total_score = acc_score + stab_score
+            if total_score >= 5:
+                quality_level = "S"
+            elif total_score >= 3:
+                quality_level = "A"
+            else:
+                quality_level = "B"
+            quality_desc = f"准确率{acc_score}分+稳定性{stab_score}分=总分{total_score}分"
+            
+            # 相比随机的提升
+            improvement = best_accuracy - 10.0  # 10类随机基准
+            
+            message = (
+                f"训练完成！\n"
+                f"【训练质量】{quality_level}（{quality_desc}）\n\n"
+                f"【准确率】\n"
+                f"Top-1准确率: {best_accuracy:.2f}%  (比随机好 +{improvement:.2f}%)\n"
+                f"Top-3准确率: {best_top3_accuracy:.2f}%  (前3个包含正确答案)\n\n"
+                f"【数据】{train_size}条训练 / {test_size}条测试\n\n"
+                f"【稳定性】\n"
+                f"平稳能力：{stability_level}（{stability}）\n"
+                f"损失状态：{loss_level}（{loss_status}）\n"
+                f"泛化能力：{generalization_level}（{generalization_desc}）"
+            )
+        else:
+            message = f"训练完成！最佳测试准确率: {best_accuracy:.2f}%"
+        # 保存最佳准确率到实例变量，供后续保存模型时使用
+        self.best_accuracy = best_accuracy
+        self.best_top3_accuracy = best_top3_accuracy
+        
+        return True, message
 
-        # 保存训练日志
-        self.save_training_log()
-
-        return True, f"训练完成！最佳测试准确率: {test_accuracy:.2f}% (类型: {best_type_accuracy:.2f}%, 档位: {test_gear_acc:.2f}%)"
-
-    def save_model(self, accuracy=0):
-        """保存模型 - 版本管理
-        同时保存带时间戳的版本和best_model.pt
-        """
-        if self.model is None:
+    def save_training_log(self, path=None):
+        """保存训练日志到文本文件"""
+        if path is None:
+            path = '强化记录/models/training_log.txt'
+        
+        if not self.training_log:
             return
+        
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write("=" * 60 + "\n")
+            f.write("训练日志\n")
+            f.write("=" * 60 + "\n\n")
+            
+            f.write(f"{'轮次':<6}{'训练损失':<12}{'训练准确率':<12}{'测试损失':<12}{'测试准确率':<12}\n")
+            f.write("-" * 60 + "\n")
+            
+            for log in self.training_log:
+                f.write(f"{log['epoch']:<6}{log['train_loss']:<12.4f}{log['train_acc']:<12.2f}{log['test_loss']:<12.4f}{log['test_acc']:<12.2f}\n")
+            
+            f.write("=" * 60 + "\n")
 
-        # 生成时间戳
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    def save_model(self, path=None):
+        """保存模型"""
+        if path is None:
+            path = '强化记录/models/best_model.pt'
 
-        # 保存带时间戳的版本
-        versioned_path = os.path.join(
-            self.data_manager.models_dir,
-            f'model_{timestamp}.pt'
-        )
+        if self.model is not None:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            torch.save(self.model.state_dict(), path)
+            # 同时保存训练日志
+            self.save_training_log()
+            
+            # 保存带时间戳的历史版本
+            if hasattr(self, 'best_accuracy'):
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                history_path = f'强化记录/models/model_{timestamp}_{self.best_accuracy:.2f}.pt'
+                torch.save(self.model.state_dict(), history_path)
 
-        # 保存best_model.pt（最新模型）
-        best_model_path = os.path.join(
-            self.data_manager.models_dir,
-            'best_model.pt'
-        )
-
-        model_data = {
-            'model_state_dict': self.model.state_dict(),
-            'vocab_size': 80,
-            'embed_dim': 16,
-            'hidden_dim': 64,
-            'num_layers': 2,
-            'num_classes': 10,
-            'num_gears': 4,  # 档位类别数
-            'max_skip': config.MAX_SKIP,  # 使用配置中的max_skip
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'accuracy': accuracy
-        }
-
-        # 保存版本化模型
-        torch.save(model_data, versioned_path)
-        print(f"模型版本已保存: {versioned_path}")
-
-        # 保存/覆盖best_model.pt
-        torch.save(model_data, best_model_path)
-        print(f"最佳模型已更新: {best_model_path}")
-
-    def list_models(self):
-        """列出所有可用的模型版本"""
-        models = []
-        for filename in os.listdir(self.data_manager.models_dir):
-            if filename.startswith('model_') and filename.endswith('.pt'):
-                filepath = os.path.join(self.data_manager.models_dir, filename)
-                try:
-                    checkpoint = torch.load(filepath, map_location='cpu', weights_only=True)
-                    models.append({
-                        'filename': filename,
-                        'timestamp': checkpoint.get('timestamp', '未知'),
-                        'accuracy': checkpoint.get('accuracy', 0),
-                        'is_best': filename == 'best_model.pt'
-                    })
-                except:
-                    pass
-        # 按时间倒序排列
-        models.sort(key=lambda x: x['timestamp'], reverse=True)
-        return models
-
-    def load_model_by_path(self, model_path):
-        """从指定路径加载模型"""
-        if not os.path.exists(model_path):
-            return False
-
-        checkpoint = torch.load(model_path, map_location=self.device, weights_only=True)
-        self.model = LSTMPredictor(
-            vocab_size=checkpoint['vocab_size'],
-            embed_dim=checkpoint['embed_dim'],
-            hidden_dim=checkpoint['hidden_dim'],
-            num_layers=checkpoint['num_layers'],
-            num_classes=checkpoint['num_classes'],
-            num_gears=checkpoint.get('num_gears', 4),  # 兼容旧模型，默认4
-            max_skip=checkpoint.get('max_skip', 3)  # 兼容旧模型，默认3
-        ).to(self.device)
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.model.eval()
-
-        return True
-
-    def save_training_log(self):
-        """保存训练日志"""
-        log_path = os.path.join(self.data_manager.models_dir, 'training_log.txt')
-        with open(log_path, 'w', encoding='utf-8') as f:
-            f.write("Epoch,Train Loss,Train Acc,Train Type Acc,Train Gear Acc,Test Loss,Test Acc,Test Type Acc,Test Gear Acc\n")
-            for entry in self.training_log:
-                f.write(f"{entry['epoch']},{entry['train_loss']:.4f},{entry['train_acc']:.2f}%,"
-                       f"{entry.get('train_type_acc', 0):.2f}%,{entry.get('train_gear_acc', 0):.2f}%,"
-                       f"{entry['test_loss']:.4f},{entry['test_acc']:.2f}%,"
-                       f"{entry.get('test_type_acc', 0):.2f}%,{entry.get('test_gear_acc', 0):.2f}%\n")
-
-    def load_model(self):
+    def load_model(self, path=None):
         """加载模型"""
-        model_path = os.path.join(self.data_manager.models_dir, 'best_model.pt')
-        if not os.path.exists(model_path):
-            return False
+        if path is None:
+            path = '强化记录/models/best_model.pt'
 
-        checkpoint = torch.load(model_path, map_location=self.device)
-        self.model = LSTMPredictor(
-            vocab_size=checkpoint['vocab_size'],
-            embed_dim=checkpoint['embed_dim'],
-            hidden_dim=checkpoint['hidden_dim'],
-            num_layers=checkpoint['num_layers'],
-            num_classes=checkpoint['num_classes'],
-            max_skip=checkpoint.get('max_skip', 3)  # 兼容旧模型，默认3
-        ).to(self.device)
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.model.eval()
-
-        return True
+        self.model = LSTMPredictor().to(self.device)
+        try:
+            self.model.load_state_dict(torch.load(path, map_location=self.device, weights_only=True))
+            self.model.eval()
+        except FileNotFoundError:
+            self.model = None
 
     def predict(self, entries, skip=1):
-        """
-        预测下一个词条 - 支持skip参数
-        entries: list of dict, 包含value, gear, star
-        skip: 跳过步数，1=预测下一个，2=跳过1个预测，3=跳过2个预测，4=跳过3个预测
-        返回: 10种词条类型的概率分布
-        """
+        """预测接口 - 只预测词条类型"""
+        if len(entries) < 3:
+            return None
+
+        # 加载模型
         if self.model is None:
-            if not self.load_model():
-                return None
+            self.load_model()
 
-        # 编码输入
-        encoded = []
-        for entry in entries:
+        if self.model is None:
+            return None
+
+        # 准备输入
+        input_seq = []
+        for entry in reversed(entries[-3:]):
             entry_id = encode_entry(entry['value'], entry['gear'], entry['star'])
-            encoded.append(entry_id)
+            input_seq.append(entry_id)
 
-        # 取最后3个
-        input_seq = encoded[-3:]
         input_tensor = torch.tensor([input_seq], dtype=torch.long).to(self.device)
         skip_tensor = torch.tensor([skip], dtype=torch.long).to(self.device)
 
+        # 预测
+        self.model.eval()
         with torch.no_grad():
-            type_output, gear_output = self.model(input_tensor, skip_tensor)
-            type_probs = torch.softmax(type_output, dim=1).cpu().numpy()[0]
-            gear_probs = torch.softmax(gear_output, dim=1).cpu().numpy()[0]
+            output = self.model(input_tensor, skip_tensor)
+            probs = torch.softmax(output, dim=1).cpu().numpy()[0] * 100
 
-        return type_probs * 100, gear_probs * 100  # 转为百分比
+        return probs
 
     def predict_dl_smart(self, all_entries):
+        """智能预测 - 根据词条数量选择skip策略
+        all_entries: 所有已录入的词条（从最旧到最新）
+        返回: 类型概率数组 或 None
         """
-        智能预测：根据词条数量选择不同的skip策略
-        动态支持 config.MAX_SKIP 配置
-        all_entries: 所有已录入的词条列表
-        返回: 加权后的概率分布
-        """
-        import numpy as np
+        if len(all_entries) < 3:
+            return None
 
-        n = len(all_entries)
-        
-        # 确保模型已加载
-        if self.model is None:
-            if not self.load_model():
-                return None
-        
-        # 获取模型实际支持的max_skip（兼容旧模型）
-        # 从skip_embedding层的大小推断: embedding.num_embeddings = max_skip + 1
-        model_max_skip = self.model.skip_embedding.num_embeddings - 1
-        
-        # 使用配置和模型支持的最小值
-        max_skip = min(config.MAX_SKIP, model_max_skip)
+        # 根据已录入词条数量选择skip策略
+        # 已录入3个 → skip=1（预测第4个）
+        # 已录入4个 → skip=2（预测第5个）
+        # 已录入5个 → skip=3（预测第6个）
+        # 已录入6个及以上 → skip=4（预测第7个）
+        num_entries = len(all_entries)
+        if num_entries <= 3:
+            skip = 1
+        elif num_entries == 4:
+            skip = 2
+        elif num_entries == 5:
+            skip = 3
+        else:
+            skip = 4
 
-        # 最少3个词条：只用 skip=1
-        if n < 4:
-            return self.predict(all_entries[-3:], skip=1)
+        return self.predict(all_entries, skip=skip)
 
-        # 计算可用多少个skip（受限于词条数量、配置和模型支持）
-        # n个词条最多可用 skip = min(max_skip, (n-2))
-        # 因为：3词条→skip=1, 4词条→skip=2, 5词条→skip=3, 6词条→skip=4
-        available_skips = min(max_skip, n - 2)
-
-        type_predictions = []
-        gear_predictions = []
-        weights = []
-
-        for skip in range(1, available_skips + 1):
-            # 获取输入序列：从后往前取3个，再往前skip-1个位置
-            # skip=1: 取最后3个 [-3:]
-            # skip=2: 往前移1位 [-4:-1]
-            # skip=3: 往前移2位 [-5:-2]
-            # skip=4: 往前移3位 [-6:-3]
-            start_idx = -(3 + skip - 1)
-            end_idx = start_idx + 3 if start_idx + 3 < 0 else None
-
-            if abs(start_idx) <= n:
-                input_seq = all_entries[start_idx:end_idx]
-                if len(input_seq) == 3:
-                    result = self.predict(input_seq, skip=skip)
-                    if result is not None:
-                        type_pred, gear_pred = result
-                        type_predictions.append(type_pred)
-                        gear_predictions.append(gear_pred)
-                        # 根据skip获取权重
-                        if skip == 1:
-                            # 5-6词条用 SKIP_1_WEIGHT_5TO6，7+用 SKIP_1_WEIGHT_7PLUS
-                            weight = config.SKIP_1_WEIGHT_5TO6 if n < 7 else config.SKIP_1_WEIGHT_7PLUS
-                        elif skip == 2:
-                            weight = config.SKIP_2_WEIGHT
-                        elif skip == 3:
-                            weight = config.SKIP_3_WEIGHT
-                        elif skip == 4:
-                            weight = config.SKIP_4_WEIGHT
-                        else:
-                            # skip > 4 时，权重递减
-                            weight = config.SKIP_4_WEIGHT * (0.5 ** (skip - 4))
-                        weights.append(weight)
-
-        if not type_predictions:
-            return self.predict(all_entries[-3:], skip=1)
-
-        # 加权平均
-        weights = np.array(weights)
-        weights = weights / weights.sum()
-
-        # 分别对类型和档位概率加权平均
-        final_type_probs = np.zeros(10)
-        final_gear_probs = np.zeros(4)
-        for type_pred, gear_pred, w in zip(type_predictions, gear_predictions, weights):
-            final_type_probs += type_pred * w
-            final_gear_probs += gear_pred * w
-
-        return final_type_probs, final_gear_probs
-
-
-if __name__ == "__main__":
-    # 测试代码
-    from artifact_predictor import DataManager
-
-    dm = DataManager()
-    trainer = ModelTrainer(dm)
-
-    # 检查是否有足够数据
-    count = dm.get_record_count()
-    print(f"当前记录数: {count}")
-
-    if count >= 100:
-        print("开始训练...")
-        success, message = trainer.train(epochs=50)
-        print(message)
-    else:
-        print(f"数据不足，需要至少10条记录，当前{count}条")
+    def get_training_log(self):
+        """获取训练日志"""
+        return self.training_log

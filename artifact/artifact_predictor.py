@@ -191,6 +191,9 @@ class TrainingThread(QThread):
             from dl_model import ModelTrainer
             trainer = ModelTrainer(self.data_manager)
             success, message = trainer.train(epochs=self.epochs)
+            if success:
+                # 训练成功，保存模型（会自动保存历史版本）
+                trainer.save_model()
             self.finished.emit(success, message)
         except Exception as e:
             self.finished.emit(False, f"训练过程出错: {str(e)}")
@@ -365,22 +368,6 @@ class ArtifactPredictor(QMainWindow):
         table1_layout.addWidget(self.confidence_label)
 
         right_layout.addWidget(table1_group)
-
-        # 档位预测表
-        gear_group = QGroupBox("档位预测（下一个词条的档位概率）")
-        gear_layout = QVBoxLayout(gear_group)
-        self.gear_table = QTableWidget(1, 4)
-
-        # 设置表头
-        self.gear_table.setHorizontalHeaderLabels(["1档", "2档", "3档", "4档"])
-        self.gear_table.setVerticalHeaderLabels(["概率%"])
-        self.gear_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.gear_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # 设置固定高度
-        self.gear_table.setFixedHeight(self.gear_table.horizontalHeader().height() + 50)
-        gear_layout.addWidget(self.gear_table)
-
-        right_layout.addWidget(gear_group)
 
         # 表2：胚子概率表
         table2_group = QGroupBox("表2：胚子强化概率")
@@ -625,51 +612,6 @@ class ArtifactPredictor(QMainWindow):
         self.stats_top3_label.setText("")
         self.confidence_label.setText("置信度: -")
         self.confidence_label.setStyleSheet("font-weight: bold;")
-        # 清空档位表
-        self.clear_gear_table()
-
-    def clear_gear_table(self):
-        """清空档位预测表"""
-        for col in range(4):
-            self.gear_table.setItem(0, col, QTableWidgetItem(""))
-
-    def encode_entry_full(self, entry):
-        """
-        将词条编码为组合ID（类型+档位）
-        返回: type_idx * 4 + (gear-1) = 0-39
-        """
-        type_char = entry['value'][0]
-        gear = entry['gear']
-        type_idx = type_map[type_char]
-        gear_idx = gear - 1  # 转为0-3
-        return type_idx * 4 + gear_idx
-
-    def predict_gear_stats(self, past_3):
-        """
-        基于统计的档位预测（深度学习失败时的回退）
-        由于gear_matrix.npy已移除，直接返回均匀分布
-        past_3: 最近3个词条（包含value, gear, star）
-        返回: [1档概率, 2档概率, 3档概率, 4档概率] （百分比）
-        """
-        return np.ones(4) * 25  # 默认均匀分布
-
-    def update_gear_table(self, gear_probs=None):
-        """更新档位预测表"""
-        if gear_probs is None:
-            return
-
-        # 更新档位表（1行4列）
-        for col in range(4):
-            prob = gear_probs[col]
-            item = QTableWidgetItem(f"{prob:.1f}")
-            # 高概率用颜色标注
-            if prob >= 35:
-                item.setBackground(QColor(150, 255, 150))  # 绿色
-            elif prob >= 30:
-                item.setBackground(QColor(255, 255, 150))  # 黄色
-            elif prob >= 25:
-                item.setBackground(QColor(255, 200, 150))  # 橙色
-            self.gear_table.setItem(0, col, item)
 
     def update_embryo_table(self):
         """更新胚子概率表（表2）"""
@@ -684,9 +626,7 @@ class ArtifactPredictor(QMainWindow):
                          self.mode_combo.isEnabled())
                 if use_dl:
                     last_3 = list(reversed(self.input_rows[:3]))
-                    result = self.predict_with_dl_smart(last_3)
-                    if result is not None:
-                        probs_percent, _ = result  # 只取类型概率
+                    probs_percent = self.predict_with_dl_smart(last_3)
                 else:
                     probs_percent = self.predict_with_stats_sliding()
 
@@ -841,29 +781,20 @@ class ArtifactPredictor(QMainWindow):
 
             if use_dl:
                 # 深度学习模式：同时计算两种模式用于对比
-                result = self.predict_with_dl_smart(last_3)
-                if result is not None:
-                    dl_type_probs, dl_gear_probs = result
+                probs_percent = self.predict_with_dl_smart(last_3)
+                if probs_percent is not None:
                     stats_probs = self.predict_with_stats_sliding()
-                    probs_percent = dl_type_probs
                     # 更新统计模式Top-3（用于对比）
                     self.update_stats_top3(stats_probs)
-                    # 更新档位预测（使用深度学习结果）
-                    self.update_gear_table(dl_gear_probs)
                 else:
                     # 深度学习失败，回退到统计模式
                     probs_percent = self.predict_with_stats_sliding()
                     self.stats_top3_label.setText("")
-                    # 档位预测使用统计方法
-                    gear_probs = self.predict_gear_stats(last_3)
-                    self.update_gear_table(gear_probs)
             else:
-                # 统计模式：只计算统计模式，不显示档位预测
+                # 统计模式：只计算统计模式
                 probs_percent = self.predict_with_stats_sliding()
                 # 清除统计模式Top-3显示
                 self.stats_top3_label.setText("")
-                # 清除档位预测表
-                self.clear_gear_table()
 
             # 更新表格（只显示概率%）
             if probs_percent is not None:
@@ -977,7 +908,7 @@ class ArtifactPredictor(QMainWindow):
 
     def predict_with_dl_smart(self, last_3):
         """使用深度学习智能预测 - 根据所有录入词条选择skip策略
-        返回: (类型概率, 档位概率) 或 None
+        返回: 类型概率数组 或 None
         """
         try:
             from dl_model import ModelTrainer
@@ -989,8 +920,8 @@ class ArtifactPredictor(QMainWindow):
                           for row in reversed(self.input_rows)]  # 从最旧到最新
 
             # 使用智能预测（根据词条数量选择skip策略）
-            result = trainer.predict_dl_smart(all_entries)
-            return result
+            probs = trainer.predict_dl_smart(all_entries)
+            return probs
         except Exception as e:
             print(f"深度学习智能预测失败: {e}")
             # 失败时返回None
